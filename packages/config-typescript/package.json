@@ -1,0 +1,7 @@
+{
+	"name": "@echo-ai/config-typescript",
+	"private": true,
+	"publishConfig": {
+		"access": "public"
+	}
+}

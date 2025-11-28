@@ -1,0 +1,6 @@
+export const PRODUCTION_CLERK_BASE_URL = "https://auth.devlog.tr"
+export const PRODUCTION_ROO_CODE_API_URL = "https://app.devlog.tr"
+
+export const getClerkBaseUrl = () => process.env.CLERK_BASE_URL || PRODUCTION_CLERK_BASE_URL
+
+export const getRooCodeApiUrl = () => process.env.ECHO_AI_API_URL || PRODUCTION_ROO_CODE_API_URL

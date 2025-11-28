@@ -1,0 +1,7 @@
+{
+	"extension.displayName": "Echo AI Nightly",
+	"views.contextMenu.label": "Echo AI Nightly",
+	"views.terminalMenu.label": "Echo AI Nightly",
+	"views.activitybar.title": "Echo AI Nightly",
+	"configuration.title": "Echo AI Nightly"
+}

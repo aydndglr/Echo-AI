@@ -1,0 +1,22 @@
+{
+	"name": "@echo-ai/types",
+	"version": "1.87.0",
+	"description": "TypeScript type definitions for Roo Code.",
+	"publishConfig": {
+		"access": "public",
+		"name": "@echo-ai/types",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"author": "Echo AI Team",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/RooCodeInc/Roo-Code.git"
+	},
+	"bugs": {
+		"url": "https://github.com/RooCodeInc/Roo-Code/issues"
+	},
+	"homepage": "https://roocode.com",
+	"keywords": ["echo", "roo-code", "ai"],
+	"files": ["dist"]
+}

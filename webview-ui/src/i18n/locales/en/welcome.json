@@ -1,0 +1,35 @@
+{
+	"greeting": "Welcome to Echo AI!",
+	"introduction": "With a range of built-in and extensible Modes, Echo AI lets you plan, architect, code, debug and boost your productivity like never before.",
+	"notice": "To get started, this extension needs an API provider.",
+	"start": "Let's go!",
+	"routers": {
+		"requesty": {
+			"description": "Your optimized LLM router",
+			"incentive": "$1 free credit"
+		},
+		"openrouter": {
+			"description": "A unified interface for LLMs"
+		},
+		"echo": {
+			"description": "The best free models to get started",
+			"incentive": "Try Echo out for free"
+		}
+	},
+	"chooseProvider": "To get started, you need an LLM provider:",
+	"providerSignup": {
+		"rooCloudProvider": "Echo AI Cloud Provider",
+		"rooCloudDescription": "The simplest way to use Echo. A curated mix of free and paid models at a low cost",
+		"learnMore": "learn more",
+		"useAnotherProvider": "Use another provider",
+		"useAnotherProviderDescription": "Enter an API key and get going.",
+		"getStarted": "Get started"
+	},
+	"startRouter": "We recommend using an LLM Router:",
+	"startCustom": "Or you can bring your provider API key:",
+	"telemetry": {
+		"helpImprove": "Help Improve Echo AI",
+		"helpImproveMessage": "Echo AI collects error and usage data to help us fix bugs and improve the extension. This telemetry does not collect code, prompts or personal information. You can turn this off in <settingsLink>settings</settingsLink>."
+	},
+	"importSettings": "Import Settings"
+}
