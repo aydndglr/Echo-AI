@@ -82,7 +82,7 @@ pnpm run vsix
 Oluşan `.vsix` dosyasını kurmak için:
 
 ```sh
-code --install-extension bin/echo-ai-1.0.2.vsix
+code --install-extension bin/echo-ai-1.0.3.vsix
 ```
 
 ---
