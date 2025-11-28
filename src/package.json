@@ -1,6 +1,6 @@
 {
 	"name": "echo-ai",
-	"displayName": "%extension.displayName%",
+	"displayName": "Echo AI - Local Coding Assistant",
 	"description": "%extension.description%",
 	"publisher": "echo-ai",
 	"version": "1.0.2",
