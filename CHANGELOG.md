@@ -2,73 +2,129 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.2] - 2025-11-27
+---
+
+## **[1.0.3] – 2025-11-29**
 
 ### 🇹🇷 Türkçe
-- **Temizlik:** Kullanılmayan `CloudService` ve `MarketplaceManager` kalıntıları tamamen temizlendi.
-- **Düzeltme:** Derleme (Build) sırasında oluşan `PostHog` ve `Types` hataları giderildi.
-- **İyileştirme:** VS Code arayüzündeki isim uyuşmazlıkları düzeltildi, menüler "Echo AI" olarak güncellendi.
-- **Performans:** Temel amaç küçük yerel modellerin etkili kullanımına yönelik çalışma olduğu için performans odaklı düzenleme ve geliştirme yapıldı.
 
-### 🇬🇧 English
-- **Cleanup:** Removed remaining dead code related to `CloudService` and `MarketplaceManager`.
-- **Fix:** Resolved build errors related to `PostHog` telemetry and missing types.
-- **Refinement:** Fixed UI labeling inconsistencies; menus now correctly display "Echo AI".
+### 🔒 **Telemetry Tamamen Kaldırıldı – %100 Yerel Gizlilik**
+Bu sürümde telemetri sistemi tamamen temizlendi.  
+Hem backend (Node) hem de webview (React UI) tarafında kalan tüm izleme kodları kaldırıldı.
+
+#### Yapılan değişiklikler:
+- **TelemetryService → NO-OP:**
+  - Tüm `captureEvent` ve benzeri izleme fonksiyonları boşaltıldı.
+  - Artık hiçbir olay kaydedilmez veya işlenmez.
+
+- **CloudTelemetryClient → NO-OP:**
+  - Roo API’ye veya herhangi bir uzak sunucuya veri gönderimi tamamen durduruldu.
+  - `fetch`, `backfillMessages`, `retryQueue` gibi tüm mekanizmalar pasifleştirildi.
+
+- **WelcomeView güncellendi:**
+  - Telemetry onayı, PostHog flag kontrolü ve izleme kodları tamamen kaldırıldı.
+  - Cloud provider tespiti & telemetri tabanlı yönlendirmeler devre dışı bırakıldı.
+
+- **About (Hakkında) ekranı yenilendi:**
+  - Telemetry checkbox ve açıklamalar yoruma alındı.
+  - Yerine: **“Echo AI hiçbir veri toplamaz, tamamen yerel çalışır.”** mesajı eklendi.
+
+- **Çeviri dosyaları:**
+  - Telemetri ile ilgili kullanılmayan string'ler artık arayüzde kullanılmıyor.
+
+### 🌟 **Ek İyileştirmeler**
+- UI sadeleştirildi, daha gizlilik odaklı hâle getirildi.
+- Kullanılmayan PostHog import’ları ve kod parçacıkları projeden tamamen temizlendi.
+- Sürüm bilgileri güncellenerek 1.0.3 olarak işaretlendi.
 
 ---
 
-## [1.0.1] - 2025-11-20
+### 🇬🇧 English
+
+### 🔒 **Telemetry Fully Removed – 100% Local Privacy**
+This release removes the entire telemetry system.  
+Tracking logic for both backend and webview has been eliminated to ensure full privacy.
+
+#### Changes:
+- **TelemetryService → NO-OP:**
+  - All telemetry functions now do nothing.
+  - No events are recorded or sent.
+
+- **CloudTelemetryClient → NO-OP:**
+  - No API calls, message uploads, or queue retries.
+  - All Roo Cloud–related logic disabled.
+
+- **WelcomeView updated:**
+  - Telemetry opt-in UI removed.
+  - PostHog feature flag handling removed.
+  - Provider click tracking disabled.
+
+- **About page updated:**
+  - Telemetry checkbox and description commented out.
+  - Replaced with a clear privacy statement:
+    **“Echo AI collects no telemetry and operates fully locally.”**
+
+- **Translations:**
+  - Telemetry strings no longer used anywhere in the UI.
+
+### 🌟 **Additional Improvements**
+- Cleaner and more privacy-friendly UI design.
+- Removed all unused PostHog references.
+- Version bumped to 1.0.3 across related files.
+
+---
+
+## **[1.0.2] – 2025-11-27**
 
 ### 🇹🇷 Türkçe
-**🚀 Echo AI Sürüm 1.0: Performans ve Yerel Zeka Odaklı Yeni Nesil Ajan**
-
-Bu sürüm, Echo AI'ın performans, gizlilik ve yerel model optimizasyonu üzerine yeniden inşa edilen ilk kararlı sürümüdür.
-
-- **⚡ Genel Optimizasyon ve Performans:**
-  - Uygulama içi gereksiz arka plan servisleri ve veri izleme (telemetri) süreçleri tamamen devre dışı bırakılarak bellek kullanımı minimize edildi.
-  - Başlangıç hızı (Startup Time) önemli ölçüde iyileştirildi.
-  - Bulut bağımlılıkları kaldırılarak, çevrimdışı (offline) ve yerel ağlarda çalışabilen "Local-First" odaklı mimariye geçildi.
-
-- **🧠 Gelişmiş Prompt Mühendisliği (Prompt Engineering):**
-  - **Yerel Model Uyumluluğu:** Küçük parametreli modellerden (4B/8B) büyük model performansı almak için sistem promptları yeniden tasarlandı.
-  - **Bağlam Yönetimi:** Gereksiz token tüketimini önleyen akıllı bağlam (context) sıkıştırma algoritmaları optimize edildi.
-  - **Düşünce Zinciri (CoT):** Modelin kod yazmadan önce planlama yapmasını sağlayan özel talimat setleri eklendi.
-
-- **🎨 Arayüz İyileştirmeleri:**
-  - **Odak Modu:** Dikkat dağıtıcı reklam, duyuru ve harici servis yönlendirmeleri arayüzden temizlendi.
-  - **Sadeleştirilmiş Kurulum:** Karmaşık sağlayıcı seçim ekranları yerine, doğrudan geliştirme ortamına odaklanan yeni bir karşılama ekranı (WelcomeView) tasarlandı.
+- **Temizlik:** Kullanılmayan `CloudService` kalıntıları tamamen temizlendi.
+- **Düzeltme:** Derleme sırasında oluşan `PostHog` ve `Types` hataları giderildi.
+- **İyileştirme:** UI etiketleri düzeltildi; menüler artık doğru şekilde "Echo AI" gösteriyor.
+- **Performans:** Küçük yerel modellerin performansını artırmaya yönelik düzenlemeler yapıldı.
 
 ### 🇬🇧 English
-**🚀 Echo AI Version 1.0: Next-Gen Agent Focused on Performance & Local Intelligence**
+- **Cleanup:** Removed old `CloudService` code.
+- **Fix:** Addressed build errors caused by PostHog and type mismatches.
+- **Refinement:** UI labels updated to consistently show “Echo AI”.
 
-This release marks the first stable version of Echo AI, re-engineered for performance, privacy, and local model optimization.
+---
 
-- **⚡ General Optimization & Performance:**
-  - Minimized memory usage by completely disabling unnecessary background services and telemetry tracking processes.
-  - Significantly improved application startup time.
-  - Transitioned to a "Local-First" architecture by removing cloud dependencies, enabling full offline capability.
+## **[1.0.1] – 2025-11-20**
 
-- **🧠 Advanced Prompt Engineering:**
-  - **Local Model Compatibility:** System prompts have been redesigned to extract large-model performance from small parameter models (4B/8B).
-  - **Context Management:** Optimized smart context compression algorithms to prevent unnecessary token consumption.
-  - **Chain of Thought (CoT):** Added specialized instruction sets that force the model to plan before coding.
+### 🇹🇷 Türkçe
+**🚀 Echo AI Sürüm 1.0 – Performans ve Yerel Zeka Odaklı Modern Yapı**
 
-- **🎨 UI/UX Refinements:**
-  - **Focus Mode:** Removed distracting ads, announcements, and external service redirects from the interface.
-  - **Streamlined Setup:** Replaced complex provider selection screens with a simplified WelcomeView focused purely on the development environment.
+- Gereksiz arka plan servisleri ve telemetri süreçleri devre dışı bırakıldı.
+- Başlangıç süresi ve çalışma performansı iyileştirildi.
+- “Local-First” çalışma yapısı güçlendirildi.
+- Prompt mühendisliği ve bağlam yönetimi geliştirildi.
+- Yeni sadeleştirilmiş kurulum arayüzü eklendi.
+
+### 🇬🇧 English
+**🚀 Echo AI Version 1.0 – Performance & Local Intelligence**
+
+- Background services & telemetry disabled for minimal memory usage.
+- Startup and overall performance improved.
+- Transitioned fully to a Local-First architecture.
+- Improved prompt engineering and context compression.
+- Redesigned welcome experience.
 
 ---
 
 ## 📬 İletişim & Kaynaklar / Contact & Resources
 
-* **GitHub:** [aydndglr/Echo-AI](https://github.com/aydndglr/Echo-AI)
-* **Website:** [devlog.tr](https://devlog.tr)
-* **Email:** [echo@devlog.tr](mailto:echo@devlog.tr)
+- **GitHub:** https://github.com/aydndglr/Echo-AI  
+- **Website:** https://devlog.tr  
+- **Email:** echo@devlog.tr  
 
-## ❤️ Teşekkür ve Atıf / Acknowledgments & Attribution
+---
 
-**Echo AI**, harika bir açık kaynak projesi olan **Roo Code** temel alınarak geliştirilmiştir. Bu projenin önceki sürümleri ve mimarisi için Roo Code ekibine ve topluluğuna içtenlikle teşekkür ederiz.
+## ❤️ Teşekkür & Atıf / Acknowledgments & Attribution
 
-**Echo AI** is built upon the foundation of the amazing open-source project **Roo Code**. We sincerely thank the Roo Code team and community for the earlier versions and architecture of this project.
+**Echo AI**, açık kaynaklı **Roo Code** projesi temel alınarak geliştirilmiştir.  
+Projenin önceki sürümleri için Roo Code ekibine ve topluluğuna teşekkür ederiz.
 
-🔗 **Original Project:** [Roo Code on GitHub](https://github.com/RooCodeInc/Roo-Code)
+**Based on the open-source Roo Code project.**  
+We sincerely thank the Roo Code team and its community.
+
+🔗 **Original Project:** https://github.com/RooCodeInc/Roo-Code

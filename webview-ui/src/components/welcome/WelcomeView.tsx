@@ -1,18 +1,18 @@
-import { useCallback, useState, useEffect } from "react"
+import { useCallback, useState } from "react"
 import knuthShuffle from "knuth-shuffle-seeded"
 import { Trans } from "react-i18next"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import posthog from "posthog-js"
+// import posthog from "posthog-js" // TELEMETRY: devre dışı
 
 import type { ProviderSettings } from "@echo-ai/types"
-import { TelemetryEventName } from "@echo-ai/types"
+// import { TelemetryEventName } from "@echo-ai/types" // TELEMETRY: devre dışı
 
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { validateApiConfiguration } from "@src/utils/validate"
 import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { getRequestyAuthUrl, getOpenRouterAuthUrl } from "@src/oauth/urls"
-import { telemetryClient } from "@src/utils/TelemetryClient"
+// import { telemetryClient } from "@src/utils/TelemetryClient" // TELEMETRY: devre dışı
 import { Button } from "@src/components/ui"
 
 import ApiOptions from "../settings/ApiOptions"
@@ -24,14 +24,16 @@ const WelcomeView = () => {
 	const { apiConfiguration, currentApiConfigName, setApiConfiguration, uriScheme, machineId } = useExtensionState()
 	const { t } = useAppTranslation()
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
-	const [showRooProvider, setShowRooProvider] = useState(false)
 
-	// Check PostHog feature flag for Roo provider
-	useEffect(() => {
-		posthog.onFeatureFlags(function () {
-			setShowRooProvider(posthog?.getFeatureFlag("roo-provider-featured") === "test")
-		})
-	}, [])
+	// TELEMETRY & FEATURE FLAG KALDIRILDI
+	// Roo provider'ı PostHog feature flag ile göstermeyi bıraktık.
+	// const [showRooProvider, setShowRooProvider] = useState(false)
+
+	// useEffect(() => {
+	// 	posthog.onFeatureFlags(function () {
+	// 		setShowRooProvider(posthog?.getFeatureFlag("roo-provider-featured") === "test")
+	// 	})
+	// }, [])
 
 	// Memoize the setApiConfigurationField function to pass to ApiOptions
 	const setApiConfigurationFieldForApiOptions = useCallback(
@@ -97,19 +99,23 @@ const WelcomeView = () => {
 								},
 							]
 
-							// Conditionally add Roo provider based on feature flag
-							const providers = showRooProvider
-								? [
-										...baseProviders,
-										{
-											slug: "echo",
-											name: "Echo AI Cloud",
-											description: t("welcome:routers.roo.description"),
-											incentive: t("welcome:routers.roo.incentive"),
-											authUrl: "#", // Placeholder since onClick handler will prevent default
-										},
-									]
-								: baseProviders
+							// TELEMETRY & ROO CLOUD FEATURE FLAG KALDIRILDI
+							// Artık PostHog üzerinden Roo provider'ı öne çıkarmıyoruz.
+							// const providers = showRooProvider
+							// 	? [
+							// 			...baseProviders,
+							// 			{
+							// 				slug: "echo",
+							// 				name: "Echo AI Cloud",
+							// 				description: t("welcome:routers.roo.description"),
+							// 				incentive: t("welcome:routers.roo.incentive"),
+							// 				authUrl: "#", // Placeholder since onClick handler will prevent default
+							// 			},
+							// 	  ]
+							// 	: baseProviders
+
+							// Şu anda sadece Requesty ve OpenRouter kullanılıyor.
+							const providers = baseProviders
 
 							// Shuffle providers based on machine ID (will be consistent for the same machine)
 							const orderedProviders = [...providers]
@@ -123,32 +129,30 @@ const WelcomeView = () => {
 									className="relative flex-1 border border-vscode-panel-border hover:bg-secondary rounded-md py-3 px-4 mb-2 flex flex-row gap-3 cursor-pointer transition-all no-underline text-inherit"
 									target="_blank"
 									rel="noopener noreferrer"
-									onClick={(e) => {
-										// Track telemetry for featured provider click
-										telemetryClient.capture(TelemetryEventName.FEATURED_PROVIDER_CLICKED, {
-											provider: provider.slug,
-										})
+									onClick={(/*e*/) => {
+										// TELEMETRY KALDIRILDI:
+										// telemetryClient.capture(TelemetryEventName.FEATURED_PROVIDER_CLICKED, {
+										// 	provider: provider.slug,
+										// })
 
-										// Special handling for Roo provider
-										if (provider.slug === "echo") {
-											e.preventDefault()
+										// Echo Cloud için özel davranış da devre dışı:
+										// if (provider.slug === "echo") {
+										// 	e.preventDefault()
+										//
+										// 	const rooConfig: ProviderSettings = {
+										// 		apiProvider: "echo",
+										// 	}
+										//
+										// 	vscode.postMessage({
+										// 		type: "upsertApiConfiguration",
+										// 		text: currentApiConfigName,
+										// 		apiConfiguration: rooConfig,
+										// 	})
+										//
+										// 	vscode.postMessage({ type: "devlogCloudSignIn" })
+										// }
 
-											// Set the Roo provider configuration
-											const rooConfig: ProviderSettings = {
-												apiProvider: "echo",
-											}
-
-											// Save the Roo provider configuration
-											vscode.postMessage({
-												type: "upsertApiConfiguration",
-												text: currentApiConfigName,
-												apiConfiguration: rooConfig,
-											})
-
-											// Then trigger cloud sign-in
-											vscode.postMessage({ type: "devlogCloudSignIn" })
-										}
-										// For other providers, let the default link behavior work
+										// Diğer provider'lar için normal link davranışı devam ediyor.
 									}}>
 									{provider.incentive && (
 										<div className="absolute top-0 right-0 text-[10px] text-vscode-badge-foreground bg-vscode-badge-background px-2 py-0.5 rounded-bl rounded-tr-md">

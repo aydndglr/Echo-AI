@@ -1,7 +1,8 @@
-import { PostHog } from "posthog-node"
-import * as vscode from "vscode"
+// PostHog artık kullanılmıyor, o yüzden import yok.
+// import { PostHog } from "posthog-node"
+// import * as vscode from "vscode"
 
-import { TelemetryEventName, type TelemetryEvent } from "@echo-ai/types"
+import { /* TelemetryEventName */ type TelemetryEvent } from "@echo-ai/types"
 
 import { BaseTelemetryClient } from "./BaseTelemetryClient"
 
@@ -10,22 +11,28 @@ import { BaseTelemetryClient } from "./BaseTelemetryClient"
  * Uses PostHog analytics to track user interactions and system events.
  * Respects user privacy settings and VSCode's global telemetry configuration.
  */
+
+/*
+
+---------------- TÜM İZLEME FONKSİYONLARI KALDIRILACAK -------------------
+
+*/
+
+// PostHog artık kullanılmıyor, o yüzden import yok.
+// import { PostHog } from "posthog-node"
+// import * as vscode from "vscode"
+
+
 export class PostHogTelemetryClient extends BaseTelemetryClient {
-	private client: PostHog
-	private distinctId: string = vscode.env.machineId
+	//private client: PostHog
+	//private distinctId: string = vscode.env.machineId
 	// Git repository properties that should be filtered out
 	private readonly gitPropertyNames = ["repositoryUrl", "repositoryName", "defaultBranch"]
 
 	constructor(debug = false) {
-		super(
-			{
-				type: "exclude",
-				events: [TelemetryEventName.TASK_MESSAGE, TelemetryEventName.LLM_COMPLETION],
-			},
-			debug,
-		)
-
-		this.client = new PostHog(process.env.POSTHOG_API_KEY || "", { host: "https://ph.roocode.com" })
+		// Herhangi bir subscription kullanmıyorsak boş geçilebilir.
+		super(undefined, debug)
+		this.telemetryEnabled = false
 	}
 
 	/**
@@ -41,24 +48,13 @@ export class PostHogTelemetryClient extends BaseTelemetryClient {
 		return true
 	}
 
-	public override async capture(event: TelemetryEvent): Promise<void> {
-		if (!this.isTelemetryEnabled() || !this.isEventCapturable(event.event)) {
-			if (this.debug) {
-				console.info(`[PostHogTelemetryClient#capture] Skipping event: ${event.event}`)
-			}
-
-			return
-		}
-
+	public override async capture(_event: TelemetryEvent): Promise<void> {
+		// NO-OP
 		if (this.debug) {
-			console.info(`[PostHogTelemetryClient#capture] ${event.event}`)
+			// İstersen buraya console.log koyabilirsin ama tavsiye etmiyorum.
+			// console.log("[Telemetry] capture called but telemetry is disabled.")
 		}
-
-		this.client.capture({
-			distinctId: this.distinctId,
-			event: event.event,
-			properties: await this.getEventProperties(event),
-		})
+		return
 	}
 
 	/**
@@ -67,9 +63,10 @@ export class PostHogTelemetryClient extends BaseTelemetryClient {
 	 * user has opted in.
 	 * @param didUserOptIn Whether the user has explicitly opted into telemetry
 	 */
-	public override updateTelemetryState(didUserOptIn: boolean): void {
+	public override updateTelemetryState(/* didUserOptIn : boolean */ ): void {
 		this.telemetryEnabled = false
 
+		/*
 		// First check global telemetry level - telemetry should only be enabled when level is "all".
 		const telemetryLevel = vscode.workspace.getConfiguration("telemetry").get<string>("telemetryLevel", "all")
 		const globalTelemetryEnabled = telemetryLevel === "all"
@@ -85,9 +82,11 @@ export class PostHogTelemetryClient extends BaseTelemetryClient {
 		} else {
 			this.client.optOut()
 		}
+			*/
 	}
 
 	public override async shutdown(): Promise<void> {
-		await this.client.shutdown()
+		//await this.client.shutdown()
+		return
 	}
 }

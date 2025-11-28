@@ -1,22 +1,11 @@
 import { HTMLAttributes } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { Trans } from "react-i18next"
-import {
-	Info,
-	Download,
-	Upload,
-	TriangleAlert,
-	Globe,
-	Shield,
-	MessageCircle,
-} from "lucide-react"
-import { VSCodeCheckbox, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+//import { Trans } from "react-i18next"
+import { Info, Download, Upload, TriangleAlert, Globe, Shield, MessageCircle } from "lucide-react"
+import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+// import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react" // TELEMETRY: devre dışı
 
 import type { TelemetrySetting } from "@echo-ai/types"
-
-// Package bilgisi genelde process.env veya sabit bir dosyadan gelir
-// Eğer @echo/package yoksa manuel sürüm yazabiliriz.
-
 
 import { vscode } from "@/utils/vscode"
 import { cn } from "@/lib/utils"
@@ -30,13 +19,17 @@ type AboutProps = HTMLAttributes<HTMLDivElement> & {
 	setTelemetrySetting: (setting: TelemetrySetting) => void
 }
 
-export const About = ({ telemetrySetting, setTelemetrySetting, className, ...props }: AboutProps) => {
+export const About = ({
+	telemetrySetting: _telemetrySetting, // artık kullanılmıyor (telemetry no-op)
+	setTelemetrySetting: _setTelemetrySetting, // artık kullanılmıyor
+	className,
+	...props
+}: AboutProps) => {
 	const { t } = useAppTranslation()
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)} {...props}>
-			<SectionHeader
-				description={`Version: 1.0.2`}>
+			<SectionHeader description={`Version: 1.0.2`}>
 				<div className="flex items-center gap-2">
 					<Info className="w-4" />
 					<div>{t("settings:sections.about")}</div>
@@ -45,7 +38,9 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 
 			<Section>
 				<div>
-                    {/* Telemetriyi varsayılan olarak kapalı veya etkisiz gösteriyoruz */}
+					{/* 
+					ESKİ TELEMETRY ONAY BLOĞU — ARTIK KULLANILMIYOR
+
 					<VSCodeCheckbox
 						checked={telemetrySetting !== "disabled"}
 						onChange={(e: any) => {
@@ -55,7 +50,6 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 						{t("settings:footer.telemetry.label")}
 					</VSCodeCheckbox>
 					<p className="text-vscode-descriptionForeground text-sm mt-0">
-                        {/* Gizlilik politikası linkini güncelledik */}
 						<Trans
 							i18nKey="settings:footer.telemetry.description"
 							components={{
@@ -63,15 +57,30 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 							}}
 						/>
 					</p>
+					*/}
+
+					{/* YENİ: Telemetri tamamen kapalı olduğuna dair net bilgi */}
+					<p className="text-vscode-descriptionForeground text-sm mt-0">
+						Echo AI, hiçbir şekilde kullanım verisi veya telemetri toplamaz.
+						Tüm işlemler tamamen yerel olarak, yalnızca senin makinen üzerinde çalışır.
+					</p>
+				{/*	<p className="text-vscode-descriptionForeground text-sm mt-1">
+						<Trans
+							//i18nKey="settings:about.privacyNote"
+							defaultValue="For more details or questions about privacy, you can contact us via <privacyLink>devlog.tr</privacyLink>."
+							components={{
+								privacyLink: <VSCodeLink href="https://devlog.tr" />,
+							}}
+						/>
+					</p> */}
 				</div>
 			</Section>
 
 			<Section className="space-y-0">
 				<h3>{t("settings:about.contactAndCommunity")}</h3>
 				<div className="flex flex-col gap-3">
-					
-                    {/* Web Sitesi Bağlantısı */}
-                    <div className="flex items-start gap-2">
+					{/* Web Sitesi Bağlantısı */}
+					<div className="flex items-start gap-2">
 						<Globe className="size-4 text-vscode-descriptionForeground shrink-0" />
 						<span>
 							Website:{" "}
@@ -81,7 +90,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 						</span>
 					</div>
 
-                    {/* E-posta Bağlantısı */}
+					{/* E-posta Bağlantısı */}
 					<div className="flex items-start gap-2">
 						<MessageCircle className="size-4 text-vscode-descriptionForeground shrink-0" />
 						<span>
@@ -90,8 +99,8 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 						</span>
 					</div>
 
-                    {/* Güvenlik Bildirimi */}
-                    <div className="flex items-start gap-2">
+					{/* Güvenlik Bildirimi */}
+					<div className="flex items-start gap-2">
 						<Shield className="size-4 text-vscode-descriptionForeground shrink-0" />
 						<span>
 							Security:{" "}
@@ -100,7 +109,6 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 							</VSCodeLink>
 						</span>
 					</div>
-
 				</div>
 			</Section>
 

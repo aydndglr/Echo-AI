@@ -6,6 +6,11 @@ import {
 	TelemetryEventSubscription,
 } from "@echo-ai/types"
 
+/**
+ * NO-OP BaseTelemetryClient
+ * Tüm gerçek telemetry logic’i buradan çıkarıldı.
+ */
+
 export abstract class BaseTelemetryClient implements TelemetryClient {
 	protected providerRef: WeakRef<TelemetryPropertiesProvider> | null = null
 	protected telemetryEnabled: boolean = false
@@ -13,12 +18,17 @@ export abstract class BaseTelemetryClient implements TelemetryClient {
 	constructor(
 		public readonly subscription?: TelemetryEventSubscription,
 		protected readonly debug = false,
-	) {}
+	) { // Artık hiçbir şey yapmıyoruz 
+	}
 
 	protected isEventCapturable(eventName: TelemetryEventName): boolean {
 		if (!this.subscription) {
 			return true
 		}
+		/**
+		* Alt sınıflar için çağrılacak “capture” imzası.
+		* Bizim stub sınıfta gerçek implementasyon yok.
+		*/
 
 		return this.subscription.type === "include"
 			? this.subscription.events.includes(eventName)
@@ -29,6 +39,7 @@ export abstract class BaseTelemetryClient implements TelemetryClient {
 	 * Determines if a specific property should be included in telemetry events
 	 * Override in subclasses to filter specific properties
 	 */
+	
 	protected isPropertyCapturable(_propertyName: string): boolean {
 		return true
 	}
