@@ -14,7 +14,7 @@
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License">
   </a>
-  <img src="https://img.shields.io/badge/Version-1.0.2-green.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.0.3-green.svg" alt="Version">
   <img src="https://img.shields.io/badge/Ollama-Ready-orange.svg" alt="Ollama Ready">
 </p>
 
