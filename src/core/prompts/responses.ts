@@ -2,7 +2,7 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as path from "path"
 import * as diff from "diff"
 import { RooIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/RooIgnoreController"
-import { RooProtectedController } from "../protect/RooProtectedController"
+import { EchoProtectedController } from "../protect/EchoProtectedController"
 import { ToolProtocol, isNativeProtocol, TOOL_PROTOCOL } from "@echo-ai/types"
 
 export const formatResponse = {
@@ -201,7 +201,7 @@ Otherwise, if you have not completed the task and do not need additional informa
 		didHitLimit: boolean,
 		rooIgnoreController: RooIgnoreController | undefined,
 		showRooIgnoredFiles: boolean,
-		rooProtectedController?: RooProtectedController,
+		rooProtectedController?: EchoProtectedController,
 	): string => {
 		const sorted = files
 			.map((file) => {

@@ -168,7 +168,7 @@ const DiffView = memo(({ source, filePath }: DiffViewProps) => {
 	}
 
 	return (
-		<div className="diff-view bg-[var(--vscode-editor-background)] rounded-md overflow-hidden text-[0.95em]">
+		<div className="diff-view bg-(--vscode-editor-background) rounded-md overflow-hidden text-[0.95em]">
 			<div className="overflow-x-hidden">
 				<table className="w-full border-collapse table-auto">
 					<tbody>
@@ -180,12 +180,12 @@ const DiffView = memo(({ source, filePath }: DiffViewProps) => {
 								if (line.type === "gap") {
 									return (
 										<tr key={globalIndex}>
-											<td className="w-[45px] text-right pr-3 pl-2 select-none align-top whitespace-nowrap bg-[var(--vscode-editor-background)]" />
-											<td className="w-[45px] text-right pr-3 select-none align-top whitespace-nowrap bg-[var(--vscode-editor-background)]" />
-											<td className="w-[12px] align-top bg-[var(--vscode-editor-background)]" />
+											<td className="w-[45px] text-right pr-3 pl-2 select-none align-top whitespace-nowrap bg-(--vscode-editor-background)" />
+											<td className="w-[45px] text-right pr-3 select-none align-top whitespace-nowrap bg-(--vscode-editor-background)" />
+											<td className="w-3 align-top bg-(--vscode-editor-background)" />
 											{/* +/- column (empty for gap) */}
-											<td className="w-[16px] text-center select-none bg-[var(--vscode-editor-background)]" />
-											<td className="pr-3 whitespace-pre-wrap break-words w-full italic bg-[var(--vscode-editor-background)]">
+											<td className="w-4 text-center select-none bg-(--vscode-editor-background)" />
+											<td className="pr-3 whitespace-pre-wrap wrap-break-word w-full italic bg-(--vscode-editor-background)">
 												{`${line.hiddenCount ?? 0} hidden lines`}
 											</td>
 										</tr>
@@ -222,15 +222,15 @@ const DiffView = memo(({ source, filePath }: DiffViewProps) => {
 											{line.newLineNum || ""}
 										</td>
 										{/* Narrow colored gutter */}
-										<td className={`w-[12px] ${gutterBgClass} align-top`} />
+										<td className={`w-3 ${gutterBgClass} align-top`} />
 										{/* +/- fixed column to prevent wrapping into it */}
 										<td
-											className={`w-[16px] text-center select-none whitespace-nowrap px-1 ${gutterBgClass}`}>
+											className={`w-4 text-center select-none whitespace-nowrap px-1 ${gutterBgClass}`}>
 											{sign}
 										</td>
 										{/* Code content (no +/- prefix here) */}
 										<td
-											className={`pl-1 pr-3 whitespace-pre-wrap break-words w-full ${contentBgClass}`}>
+											className={`pl-1 pr-3 whitespace-pre-wrap wrap-break-word w-full ${contentBgClass}`}>
 											{renderContent(line, hunk, lineIndex)}
 										</td>
 									</tr>

@@ -57,7 +57,7 @@ function VSCodeTextFieldWithNodesInner(
 			className={cn(
 				`group`,
 				`relative flex items-center cursor-text`,
-				`bg-[var(--input-background)] text-[var(--input-foreground)]`,
+				`bg-(--input-background) text-(--input-foreground)`,
 				`rounded-[calc(var(--corner-radius-round)*1px)]`,
 				className,
 			)}
@@ -84,7 +84,7 @@ function VSCodeTextFieldWithNodesInner(
 			)}
 
 			{/* Absolutely positioned focus border overlay */}
-			<div className="absolute top-0 left-0 size-full border border-vscode-input-border group-focus-within:border-[var(--focus-border)] rounded"></div>
+			<div className="absolute top-0 left-0 size-full border border-vscode-input-border group-focus-within:border-(--focus-border) rounded"></div>
 		</div>
 	)
 }

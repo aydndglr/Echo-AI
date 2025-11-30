@@ -15,7 +15,7 @@
 	"taskSyncDescription": "Sync your tasks for viewing and sharing on Echo AI Cloud",
 	"remoteControl": "Roomote Control",
 	"remoteControlDescription": "Allow controlling tasks from Echo AI Cloud",
-	"remoteControlRequiresTaskSync": "Task sync must be enabled to use Roomote Control",
+	"remoteControlRequiresTaskSync": "Task sync must be enabled to use Remote Control",
 	"taskSyncManagedByOrganization": "Task sync is managed by your organization",
 	"usageMetricsAlwaysReported": "Model usage info is always reported when logged in",
 	"cloudUrlPillLabel": "Echo AI Cloud URL",
@@ -27,8 +27,8 @@
 	"switchAccount": "Switch Echo AI Cloud Account",
 	"createTeamAccount": "Create Team Account",
 	"upsell": {
-		"autoApprovePowerUser": "Giving Echosome independence? Control it from anywhere with Echo AI Cloud. <learnMoreLink>Learn more</learnMoreLink>.",
+		"autoApprovePowerUser": "Giving Echo some independence? Control...with Echo AI Cloud. <learnMoreLink>Learn more</learnMoreLink>.",
 		"longRunningTask": "This might take a while. Continue from anywhere with Cloud.",
-		"taskList": "Enjoying Roo? Check out Echo AI Cloud: follow and control your tasks from anywhere, run autonomous Cloud agents, get usage stats and more. <learnMoreLink>Learn more</learnMoreLink>."
+		"taskList": "Enjoying Echo AI? Check out Echo AI Cloud: follow and...sage stats and more. <learnMoreLink>Learn more</learnMoreLink>."
 	}
 }

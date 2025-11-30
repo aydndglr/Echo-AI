@@ -293,8 +293,8 @@
 		},
 		"release": {
 			"heading": "Bu sürümdeki yenilikler:",
-			"browserUse": "Browser Use 2.0, kalıcı oturumlar, daha net geri bildirim, özel tarayıcı paneli ve daha doğal eylem açıklamalarıyla sohbet içi tarayıcı deneyimini yükseltir",
-			"cloudPaid": "Echo AI Cloud sağlayıcısı artık ücretli modeller sunuyor: kredi satın alın ve bunları hem bulut ajanları hem de çıkarım için kullanın"
+			"browserUse": "Telemetri sistemi tamamen kaldırıldı: Echo AI artık %100 yerel çalışıyor ve hiçbir kullanım verisi toplamıyor.",
+			"cloudPaid": "Cloud ve analiz bağımlılıkları temizlendi; arayüzde Echo AI'ın hiç veri toplamadığı ve verilerinin makinenizde kaldığı açıkça belirtiliyor."
 		},
 		"cloudAgents": {
 			"heading": "Cloud'daki yenilikler:",
@@ -302,8 +302,8 @@
 			"description": "Ajanlar bulutta birlikte çalışır ve web'den veya Slack üzerinden tetiklenebilir.",
 			"tryButton": "Bulut Ajanlarını Dene"
 		},
-		"careers": "Ayrıca, <careersLink>işe alım yapıyoruz!</careersLink>",
-		"socialLinks": "Bize <xLink>X</xLink>, <discordLink>Discord</discordLink>, veya <redditLink>r/EchoAI</redditLink>'da katılın 🚀"
+		"careers": "",
+		"socialLinks": "Bizi <githubLink>GitHub</githubLink> üzerinde ziyaret edin 🚀"
 	},
 	"browser": {
 		"session": "Tarayıcı Oturumu",

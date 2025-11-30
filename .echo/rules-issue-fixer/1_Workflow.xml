@@ -9,9 +9,9 @@
       - Repository name
       - Issue number
       
-      For example, from https://github.com/RooCodeInc/Roo-Code/issues/123:
-      - Owner: RooCodeInc
-      - Repo: Roo-Code
+      For example, from https://github.com/aydndglr/Echo-AI/
+      - Owner: aydndglr
+      - Repo: Echo AI
       - Issue: 123
       
       Then retrieve the issue:

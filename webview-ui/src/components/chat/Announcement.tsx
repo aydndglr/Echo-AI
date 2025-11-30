@@ -52,9 +52,7 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 						<Trans
 							i18nKey="chat:announcement.socialLinks"
 							components={{
-								xLink: <XLink />,
-								discordLink: <DiscordLink />,
-								redditLink: <RedditLink />,
+								githubLink: <GithubLink/>
 							}}
 						/>
 					</div>
@@ -74,6 +72,21 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 	)
 }
 
+const GithubLink = () => (
+  <VSCodeLink
+    href="https://github.com/aydndglr/Echo-AI"
+    onClick={(e) => {
+      e.preventDefault()
+      vscode.postMessage({
+        type: "openExternal",
+        url: "https://github.com/aydndglr/Echo-AI",
+      })
+    }}>
+    GitHub
+  </VSCodeLink>
+)
+
+/*
 const XLink = () => (
 	<VSCodeLink
 		href="https://x.com/roocode"
@@ -84,6 +97,10 @@ const XLink = () => (
 		X
 	</VSCodeLink>
 )
+
+
+
+
 
 const DiscordLink = () => (
 	<VSCodeLink
@@ -106,7 +123,7 @@ const RedditLink = () => (
 		r/RooCode
 	</VSCodeLink>
 )
-
+*/
 const CareersLink = ({ children }: { children?: React.ReactNode }) => (
 	<VSCodeLink
 		href="https://careers.roocode.com"

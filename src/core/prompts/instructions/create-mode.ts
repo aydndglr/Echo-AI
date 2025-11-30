@@ -13,12 +13,12 @@ export async function createModeInstructions(context: vscode.ExtensionContext | 
 	return `
 Custom modes can be configured in two ways:
   1. Globally via '${customModesPath}' (created automatically on startup)
-  2. Per-workspace via '.echomodes' in the workspace root directory
+  2. Per-workspace via '.echo/modes/custom_modes.yaml' in the workspace root directory
 
-When modes with the same slug exist in both files, the workspace-specific .echomodes version takes precedence. This allows projects to override global modes or define project-specific modes.
+When modes with the same slug exist in both files, the workspace-specific ~/.echo/custom-modes.yaml version takes precedence. This allows projects to override global modes or define project-specific modes.
 
 
-If asked to create a project mode, create it in .echomodes in the workspace root. If asked to create a global mode, use the global custom modes file.
+If asked to create a project mode, create it in '.echo/modes/custom_modes.yaml' in the workspace root. If asked to create a global mode, use the global custom modes file.
 
 - The following fields are required and must not be empty:
   * slug: A valid slug (lowercase letters, numbers, and hyphens). Must be unique, and shorter is better.

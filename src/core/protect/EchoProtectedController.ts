@@ -7,29 +7,34 @@ export const SHIELD_SYMBOL = "\u{1F6E1}"
  * Controls write access to Roo configuration files by enforcing protection patterns.
  * Prevents auto-approved modifications to sensitive Roo configuration files.
  */
-export class RooProtectedController {
+export class EchoProtectedController {
 	private cwd: string
 	private ignoreInstance: Ignore
 
 	// Predefined list of protected Roo configuration patterns
 	private static readonly PROTECTED_PATTERNS = [
 		".echoignore",
-		".echomodes",
-		".roorules*",
+		// Yeni custom modes dosyamız – otomatik yönetiliyor, model doğrudan ellememeli
+		".echo/modes/custom_modes.yaml",
+		// Yeni rules klasörleri – her mod için .echo/rules-{slug}
+		".echo/rules-*",
+		".echo/rules/**",
+
+		// Eski/diğer korunan dosyalar
+		".echorules*",
 		".clinerules*",
-		".roo/**",
-		".vscode/**",
-		"*.code-workspace",
-		".rooprotected", // For future use
-		"AGENTS.md",
-		"AGENT.md",
+		".echo/**",
+		".git/**",
+		".gitignore",
+		"package-lock.json",
+		"pnpm-lock.yaml",
 	]
 
 	constructor(cwd: string) {
 		this.cwd = cwd
 		// Initialize ignore instance with protected patterns
 		this.ignoreInstance = ignore()
-		this.ignoreInstance.add(RooProtectedController.PROTECTED_PATTERNS)
+		this.ignoreInstance.add(EchoProtectedController.PROTECTED_PATTERNS)
 	}
 
 	/**
@@ -94,7 +99,7 @@ export class RooProtectedController {
 	 * @returns Formatted instructions about file protection
 	 */
 	getInstructions(): string {
-		const patterns = RooProtectedController.PROTECTED_PATTERNS.join(", ")
+		const patterns = EchoProtectedController.PROTECTED_PATTERNS.join(", ")
 		return `# Protected Files\n\n(The following Roo configuration file patterns are write-protected and always require approval for modifications, regardless of autoapproval settings. When using list_files, you'll notice a ${SHIELD_SYMBOL} next to files that are write-protected.)\n\nProtected patterns: ${patterns}`
 	}
 
@@ -102,6 +107,6 @@ export class RooProtectedController {
 	 * Get the list of protected patterns (for testing/debugging)
 	 */
 	static getProtectedPatterns(): readonly string[] {
-		return RooProtectedController.PROTECTED_PATTERNS
+		return EchoProtectedController.PROTECTED_PATTERNS
 	}
 }

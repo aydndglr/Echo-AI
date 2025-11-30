@@ -2,6 +2,72 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4] - 2025-11-30
+
+### 🇹🇷 Türkçe
+
+### 🔧 Arayüz ve Metin Temizliği
+- RooCode döneminden kalan tüm **Roomote**, **Roo**, **Roo Cloud**, **.echomodes** ve benzeri kalıntı metinler arayüzden tamamen temizlendi.
+- Cloud ekranındaki yanlış/eskimiş metinler güncellendi:
+  - "Roomote Control" → "Uzaktan Kontrol / Remote Control"
+  - "Enjoying Roo?" → "Enjoying Echo AI?"
+- Mod düzenleme açıklamaları Echo yapısına uygun hale getirildi:
+  - `.echomodes` yerine artık doğru yol **`.echo/modes/custom_modes.yaml`** olarak gösteriliyor.
+  - `loadFromFile` açıklamaları yenilendi ve `.echo/rules-{{slug}}/` yapısına göre düzeltildi.
+- Hoş geldin ekranındaki eski "Roo logo" alt metni **Echo AI** olarak güncellendi.
+
+### 📝 Sürüm Bilgilendirme (What's New) Ekranı Güncellendi
+- 1.0.3 popup’ında görüntülenen eski/yanlış özellikler kaldırıldı.
+- Artık gerçek Echo AI 1.0.3 değişiklikleri gösteriliyor:
+  - Telemetri tamamen kaldırıldı.
+  - Cloud/analitik bağımlılıkları temizlendi.
+  - Kullanıcı verilerinin sadece yerel makinede kaldığı açıkça belirtiliyor.
+
+### 🔗 Sosyal Bağlantıların Temizlenmesi
+- Eski X / Discord / Reddit linkleri tamamen kaldırıldı.
+- Sosyal alan artık yalnızca Echo AI GitHub deposunu gösteriyor.
+- Yeni `<githubLink>` bileşeni eklendi ve popup’taki bağlantı **https://github.com/aydndglr/Echo-AI** adresine yönlendiriyor.
+
+### 🎨 Genel Temizlik ve Uyum
+- UI boyunca Echo AI markasıyla uyuşmayan tüm kelimeler, açıklamalar ve linkler temizlendi veya yeniden düzenlendi.
+- Eski belgelerden, uyarılardan ve Roo/Roomote’e gönderme yapan ifadeler kaldırıldı.
+- Sürüm gösterim alanı, açıklamalar ve sosyal linkler artık tamamen Echo AI'a göre uyumlu.
+
+---
+
+### 🇬🇧 English
+
+## [1.0.4] - 2025-11-30
+
+### 🔧 UI & Text Cleanup
+- Removed all remaining references to **Roomote**, **Roo**, **Roo Cloud**, and deprecated **.echomodes** terminology.
+- Updated Cloud panel texts:
+  - "Roomote Control" → "Remote Control"
+  - "Enjoying Roo?" → "Enjoying Echo AI?"
+- Updated mode configuration descriptions to match Echo’s directory structure:
+  - `.echomodes` replaced with correct **`.echo/modes/custom_modes.yaml`**
+  - `loadFromFile` instructions rewritten based on `.echo/rules-{{slug}}/`.
+
+### 📝 Updated “What’s New” Popup
+- Removed outdated/inaccurate feature descriptions from earlier builds.
+- Now correctly displays the actual 1.0.3 improvements:
+  - Telemetry fully removed.
+  - Cloud/analytics dependencies cleaned up.
+  - Clear communication that Echo AI stores all data locally.
+
+### 🔗 Social Links Cleanup
+- Removed old X / Discord / Reddit links.
+- Replaced with a single GitHub link pointing to:
+  - **https://github.com/aydndglr/Echo-AI**
+- Added new `<githubLink>` component to support this.
+
+### 🎨 Overall Cleanup & Branding Alignment
+- All text/content mismatching the Echo AI branding has been updated or removed.
+- Deprecated comments, outdated warnings, and Roo/Roomote messaging fully removed.
+- Version popup, social area, and descriptive texts now fully aligned with Echo AI identity.
+
+
+
 ---
 
 ## **[1.0.3] – 2025-11-29**

@@ -244,6 +244,7 @@ export class MarketplaceManager {
 	/**
 	 * Check for project-level installed items
 	 */
+	/*
 	private async checkProjectInstallations(metadata: Record<string, { type: string }>): Promise<void> {
 		try {
 			const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
@@ -252,7 +253,12 @@ export class MarketplaceManager {
 			}
 
 			// Check modes in .echomodes
-			const projectModesPath = path.join(workspaceFolder.uri.fsPath, ".echomodes")
+			const projectModesPath = path.join(
+				workspaceFolder.uri.fsPath,
+				".echo",
+				"modes",
+				"custom_modes.yaml"
+			)
 			try {
 				const content = await fs.readFile(projectModesPath, "utf-8")
 				const data = yaml.parse(content)
@@ -269,8 +275,8 @@ export class MarketplaceManager {
 				// File doesn't exist or can't be read, skip
 			}
 
-			// Check MCPs in .roo/mcp.json
-			const projectMcpPath = path.join(workspaceFolder.uri.fsPath, ".roo", "mcp.json")
+			// Check MCPs in .echo/mcp.json
+			const projectMcpPath = path.join(workspaceFolder.uri.fsPath, ".echo", "mcp.json")
 			try {
 				const content = await fs.readFile(projectMcpPath, "utf-8")
 				const data = JSON.parse(content)
@@ -283,6 +289,54 @@ export class MarketplaceManager {
 				}
 			} catch (error) {
 				// File doesn't exist or can't be read, skip
+			}
+		} catch (error) {
+			console.error("Error checking project installations:", error)
+		}
+	}
+*/
+	private async checkProjectInstallations(metadata: Record<string, { type: string }>): Promise<void> {
+		try {
+			const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+			if (!workspaceFolder) {
+				return
+			}
+
+			// Corrected mode path (old: .echomodes)
+			const projectModesPath = path.join(
+				workspaceFolder.uri.fsPath,
+				".echo",
+				"modes",
+				"custom_modes.yaml"
+			)
+
+			try {
+				const content = await fs.readFile(projectModesPath, "utf-8")
+				const data = yaml.parse(content)
+
+				if (data?.customModes && Array.isArray(data.customModes)) {
+					for (const mode of data.customModes) {
+						if (mode.slug) {
+							metadata[mode.slug] = { type: "mode" }
+						}
+					}
+				}
+			} catch (error) {
+				// ignore missing file
+			}
+
+			// MCP path remains the same
+			const projectMcpPath = path.join(workspaceFolder.uri.fsPath, ".echo", "mcp.json")
+			try {
+				const content = await fs.readFile(projectMcpPath, "utf-8")
+				const data = JSON.parse(content)
+				if (data?.mcpServers && typeof data.mcpServers === "object") {
+					for (const serverName of Object.keys(data.mcpServers)) {
+						metadata[serverName] = { type: "mcp" }
+					}
+				}
+			} catch (error) {
+				// ignore
 			}
 		} catch (error) {
 			console.error("Error checking project installations:", error)

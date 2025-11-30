@@ -575,7 +575,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						}>
 						<Button
 							variant={isSettingValid ? "primary" : "secondary"}
-							className={!isSettingValid ? "!border-vscode-errorForeground" : ""}
+							className={!isSettingValid ? "border-vscode-errorForeground!" : ""}
 							onClick={handleSubmit}
 							disabled={!isChangeDetected || !isSettingValid}
 							data-testid="save-button">

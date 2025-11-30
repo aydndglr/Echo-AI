@@ -45,7 +45,7 @@ export function PathTooltip({
 			side={side}
 			align={align}
 			sideOffset={sideOffset}
-			className="[text-wrap:wrap]"
+			className="text-wrap"
 			maxWidth="min(300px,100vw)"
 			asChild={asChild}>
 			{children}

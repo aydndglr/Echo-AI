@@ -3,24 +3,24 @@ import * as os from "os"
 import fs from "fs/promises"
 
 /**
- * Gets the global .roo directory path based on the current platform
+ * Gets the global .echo directory path based on the current platform
  *
- * @returns The absolute path to the global .roo directory
+ * @returns The absolute path to the global .echo directory
  *
  * @example Platform-specific paths:
  * ```
- * // macOS/Linux: ~/.roo/
- * // Example: /Users/john/.roo
+ * // macOS/Linux: ~/.echo/
+ * // Example: /Users/john/.echo
  *
- * // Windows: %USERPROFILE%\.roo\
- * // Example: C:\Users\john\.roo
+ * // Windows: %USERPROFILE%\.echo\
+ * // Example: C:\Users\john\.echo
  * ```
  *
  * @example Usage:
  * ```typescript
  * const globalDir = getGlobalRooDirectory()
- * // Returns: "/Users/john/.roo" (on macOS/Linux)
- * // Returns: "C:\\Users\\john\\.roo" (on Windows)
+ * // Returns: "/Users/john/.echo" (on macOS/Linux)
+ * // Returns: "C:\\Users\\john\\.echo" (on Windows)
  * ```
  */
 export function getGlobalEchoDirectory(): string {
@@ -29,24 +29,24 @@ export function getGlobalEchoDirectory(): string {
 }
 
 /**
- * Gets the project-local .roo directory path for a given cwd
+ * Gets the project-local .echo directory path for a given cwd
  *
  * @param cwd - Current working directory (project path)
- * @returns The absolute path to the project-local .roo directory
+ * @returns The absolute path to the project-local .echo directory
  *
  * @example
  * ```typescript
  * const projectDir = getProjectRooDirectoryForCwd('/Users/john/my-project')
- * // Returns: "/Users/john/my-project/.roo"
+ * // Returns: "/Users/john/my-project/.echo"
  *
  * const windowsProjectDir = getProjectRooDirectoryForCwd('C:\\Users\\john\\my-project')
- * // Returns: "C:\\Users\\john\\my-project\\.roo"
+ * // Returns: "C:\\Users\\john\\my-project\\.echo"
  * ```
  *
  * @example Directory structure:
  * ```
  * /Users/john/my-project/
- * ├── .roo/                    # Project-local configuration directory
+ * ├── .echo/                    # Project-local configuration directory
  * │   ├── rules/
  * │   │   └── rules.md
  * │   ├── custom-instructions.md
@@ -112,7 +112,7 @@ export async function readFileIfExists(filePath: string): Promise<string | null>
 }
 
 /**
- * Gets the ordered list of .roo directories to check (global first, then project-local)
+ * Gets the ordered list of .echo directories to check (global first, then project-local)
  *
  * @param cwd - Current working directory (project path)
  * @returns Array of directory paths to check in order [global, project-local]
@@ -123,20 +123,20 @@ export async function readFileIfExists(filePath: string): Promise<string | null>
  * const directories = getRooDirectoriesForCwd('/Users/john/my-project')
  * // Returns:
  * // [
- * //   '/Users/john/.roo',           // Global directory
- * //   '/Users/john/my-project/.roo' // Project-local directory
+ * //   '/Users/john/.echo',           // Global directory
+ * //   '/Users/john/my-project/.echo' // Project-local directory
  * // ]
  * ```
  *
  * @example Directory structure:
  * ```
  * /Users/john/
- * ├── .roo/                    # Global configuration
+ * ├── .echo/                    # Global configuration
  * │   ├── rules/
  * │   │   └── rules.md
  * │   └── custom-instructions.md
  * └── my-project/
- *     ├── .roo/                # Project-specific configuration
+ *     ├── .echo/                # Project-specific configuration
  *     │   ├── rules/
  *     │   │   └── rules.md     # Overrides global rules
  *     │   └── project-notes.md
@@ -157,9 +157,9 @@ export function getEchoDirectoriesForCwd(cwd: string): string[] {
 }
 
 /**
- * Loads configuration from multiple .roo directories with project overriding global
+ * Loads configuration from multiple .echo directories with project overriding global
  *
- * @param relativePath - The relative path within each .roo directory (e.g., 'rules/rules.md')
+ * @param relativePath - The relative path within each .echo directory (e.g., 'rules/rules.md')
  * @param cwd - Current working directory (project path)
  * @returns Object with global and project content, plus merged content
  *
@@ -170,8 +170,8 @@ export function getEchoDirectoriesForCwd(cwd: string): string[] {
  *
  * // Returns:
  * // {
- * //   global: "Global rules content...",     // From ~/.roo/rules/rules.md
- * //   project: "Project rules content...",   // From /Users/john/my-project/.roo/rules/rules.md
+ * //   global: "Global rules content...",     // From ~/.echo/rules/rules.md
+ * //   project: "Project rules content...",   // From /Users/john/my-project/.echo/rules/rules.md
  * //   merged: "Global rules content...\n\n# Project-specific rules (override global):\n\nProject rules content..."
  * // }
  * ```
@@ -182,8 +182,8 @@ export function getEchoDirectoriesForCwd(cwd: string): string[] {
  * cwd: '/Users/john/my-project'
  *
  * Reads from:
- * - Global: /Users/john/.roo/rules/rules.md
- * - Project: /Users/john/my-project/.roo/rules/rules.md
+ * - Global: /Users/john/.echo/rules/rules.md
+ * - Project: /Users/john/my-project/.echo/rules/rules.md
  *
  * Other common relativePath examples:
  * - 'custom-instructions.md'

@@ -1,7 +1,8 @@
+/*
+
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
-import * as os from "os"
 
 import * as yaml from "yaml"
 import stripBom from "strip-bom"
@@ -16,7 +17,7 @@ import { GlobalFileNames } from "../../shared/globalFileNames"
 import { ensureSettingsDirectoryExists } from "../../utils/globalContext"
 import { t } from "../../i18n"
 
-const ECHOMODES_FILENAME = ".echomodes"
+const PROJECT_MODES_RELATIVE_PATH = path.join(".echo", "modes", "custom_modes.yaml")
 
 // Type definitions for import/export functionality
 interface RuleFile {
@@ -98,27 +99,26 @@ export class CustomModesManager {
 		}
 
 		const workspaceRoot = getWorkspacePath()
-		const echomodesPath = path.join(workspaceRoot, ECHOMODES_FILENAME)
-		const exists = await fileExistsAtPath(echomodesPath)
-		return exists ? echomodesPath : undefined
+		const projectModesPath = path.join(workspaceRoot, PROJECT_MODES_RELATIVE_PATH)
+		const exists = await fileExistsAtPath(projectModesPath)
+		return exists ? projectModesPath : undefined
 	}
 
-	/**
-	 * Regex pattern for problematic characters that need to be cleaned from YAML content
-	 * Includes:
-	 * - \u00A0: Non-breaking space
-	 * - \u200B-\u200D: Zero-width spaces and joiners
-	 * - \u2010-\u2015, \u2212: Various dash characters
-	 * - \u2018-\u2019: Smart single quotes
-	 * - \u201C-\u201D: Smart double quotes
-	 */
+	 // Regex pattern for problematic characters that need to be cleaned from YAML content
+	 // Includes:
+	 // - \u00A0: Non-breaking space
+	 // - \u200B-\u200D: Zero-width spaces and joiners
+	 // - \u2010-\u2015, \u2212: Various dash characters
+	 // - \u2018-\u2019: Smart single quotes
+	 // - \u201C-\u201D: Smart double quotes
+	 //
 	private static readonly PROBLEMATIC_CHARS_REGEX =
 		// eslint-disable-next-line no-misleading-character-class
 		/[\u00A0\u200B\u200C\u200D\u2010\u2011\u2012\u2013\u2014\u2015\u2212\u2018\u2019\u201C\u201D]/g
 
-	/**
-	 * Clean invisible and problematic characters from YAML content
-	 */
+	
+	 // Clean invisible and problematic characters from YAML content
+
 	private cleanInvisibleCharacters(content: string): string {
 		// Single pass replacement for all problematic characters
 		return content.replace(CustomModesManager.PROBLEMATIC_CHARS_REGEX, (match) => {
@@ -141,9 +141,9 @@ export class CustomModesManager {
 		})
 	}
 
-	/**
-	 * Parse YAML content with enhanced error handling and preprocessing
-	 */
+	
+	 // Parse YAML content with enhanced error handling and preprocessing
+	
 	private parseYamlSafely(content: string, filePath: string): any {
 		// Clean the content
 		let cleanedContent = stripBom(content)
@@ -154,8 +154,8 @@ export class CustomModesManager {
 			// Ensure we never return null or undefined
 			return parsed ?? {}
 		} catch (yamlError) {
-			// For .echomodes files, try JSON as fallback
-			if (filePath.endsWith(ECHOMODES_FILENAME)) {
+			// For the project custom modes file, try JSON as fallback
+			if (filePath.endsWith(PROJECT_MODES_RELATIVE_PATH)) {
 				try {
 					// Try parsing the original content as JSON (not the cleaned content)
 					return JSON.parse(content)
@@ -173,7 +173,7 @@ export class CustomModesManager {
 				}
 			}
 
-			// For non-.echomodes files, just log and return empty object
+			// For non-project modes files, just log and return empty object
 			const errorMsg = yamlError instanceof Error ? yamlError.message : String(yamlError)
 			console.error(`[CustomModesManager] Failed to parse YAML from ${filePath}:`, errorMsg)
 			return {}
@@ -195,8 +195,8 @@ export class CustomModesManager {
 			if (!result.success) {
 				console.error(`[CustomModesManager] Schema validation failed for ${filePath}:`, result.error)
 
-				// Show user-friendly error for .echomodes files
-				if (filePath.endsWith(ECHOMODES_FILENAME)) {
+				// Show user-friendly error for the project custom modes file
+				if (filePath.endsWith(PROJECT_MODES_RELATIVE_PATH)) {
 					const issues = result.error.issues
 						.map((issue) => `• ${issue.path.join(".")}: ${issue.message}`)
 						.join("\n")
@@ -208,8 +208,8 @@ export class CustomModesManager {
 			}
 
 			// Determine source based on file path
-			const isRoomodes = filePath.endsWith(ECHOMODES_FILENAME)
-			const source = isRoomodes ? ("project" as const) : ("global" as const)
+			const isProjectModesFile = filePath.endsWith(PROJECT_MODES_RELATIVE_PATH)
+			const source = isProjectModesFile ? ("project" as const) : ("global" as const)
 
 			// Add source to each mode
 			return result.data.customModes.map((mode) => ({ ...mode, source }))
@@ -227,7 +227,7 @@ export class CustomModesManager {
 		const slugs = new Set<string>()
 		const merged: ModeConfig[] = []
 
-		// Add project mode (takes precedence)
+		// Add project modes (take precedence)
 		for (const mode of projectModes) {
 			if (!slugs.has(mode.slug)) {
 				slugs.add(mode.slug)
@@ -294,12 +294,13 @@ export class CustomModesManager {
 					return
 				}
 
-				// Get modes from .echomodes if it exists (takes precedence)
-				const echomodesPath = await this.getWorkspaceEchomodes()
-				const echomodesModes = echomodesPath ? await this.loadModesFromFile(echomodesPath) : []
+				// Get modes from the project custom modes file if it exists (takes precedence)
+				const projectModesPath = await this.getWorkspaceEchomodes()
+				const projectFileModes = projectModesPath ? await this.loadModesFromFile(projectModesPath) : []
 
-				// Merge modes from both sources (.echomodes takes precedence)
-				const mergedModes = await this.mergeCustomModes(echomodesModes, result.data.customModes)
+				// Merge modes from both sources (project file takes precedence)
+				const mergedModes = await this.mergeCustomModes(projectFileModes, result.data.customModes)
+
 				await this.context.globalState.update("customModes", mergedModes)
 				this.clearCache()
 				await this.onUpdate()
@@ -313,47 +314,51 @@ export class CustomModesManager {
 		this.disposables.push(settingsWatcher.onDidDelete(handleSettingsChange))
 		this.disposables.push(settingsWatcher)
 
-		// Watch .echomodes file - watch the path even if it doesn't exist yet
+		// Watch the project custom modes file - watch the path even if it doesn't exist yet
 		const workspaceFolders = vscode.workspace.workspaceFolders
 		if (workspaceFolders && workspaceFolders.length > 0) {
 			const workspaceRoot = getWorkspacePath()
-			const echomodesPath = path.join(workspaceRoot, ECHOMODES_FILENAME)
-			const echomodesWatcher = vscode.workspace.createFileSystemWatcher(echomodesPath)
+			const projectModesPath = path.join(workspaceRoot, PROJECT_MODES_RELATIVE_PATH)
+			const projectModesWatcher = vscode.workspace.createFileSystemWatcher(projectModesPath)
 
-			const handleRoomodesChange = async () => {
+			const handleProjectModesChange = async () => {
 				try {
 					const settingsModes = await this.loadModesFromFile(settingsPath)
-					const echomodesModes = await this.loadModesFromFile(echomodesPath)
-					// .echomodes takes precedence
-					const mergedModes = await this.mergeCustomModes(echomodesModes, settingsModes)
+					const projectFileModes = await this.loadModesFromFile(projectModesPath)
+					// Project modes take precedence
+					const mergedModes = await this.mergeCustomModes(projectFileModes, settingsModes)
 					await this.context.globalState.update("customModes", mergedModes)
 					this.clearCache()
 					await this.onUpdate()
 				} catch (error) {
-					console.error(`[CustomModesManager] Error handling .echomodes file change:`, error)
+					console.error(`[CustomModesManager] Error handling project custom modes file change:`, error)
 				}
 			}
 
-			this.disposables.push(echomodesWatcher.onDidChange(handleRoomodesChange))
-			this.disposables.push(echomodesWatcher.onDidCreate(handleRoomodesChange))
+			this.disposables.push(projectModesWatcher.onDidChange(handleProjectModesChange))
+			this.disposables.push(projectModesWatcher.onDidCreate(handleProjectModesChange))
 			this.disposables.push(
-				echomodesWatcher.onDidDelete(async () => {
-					// When .echomodes is deleted, refresh with only settings modes
+				projectModesWatcher.onDidDelete(async () => {
+					// When project custom modes file is deleted, refresh with only settings modes
 					try {
 						const settingsModes = await this.loadModesFromFile(settingsPath)
 						await this.context.globalState.update("customModes", settingsModes)
 						this.clearCache()
 						await this.onUpdate()
 					} catch (error) {
-						console.error(`[CustomModesManager] Error handling .echomodes file deletion:`, error)
+						console.error(
+							`[CustomModesManager] Error handling project custom modes file deletion:`,
+							error,
+						)
 					}
 				}),
 			)
-			this.disposables.push(echomodesWatcher)
+			this.disposables.push(projectModesWatcher)
 		}
 	}
 
-	public async getCustomModes(): Promise<ModeConfig[]> {
+
+		public async getCustomModes(): Promise<ModeConfig[]> {
 		// Check if we have a valid cached result.
 		const now = Date.now()
 
@@ -365,16 +370,16 @@ export class CustomModesManager {
 		const settingsPath = await this.getCustomModesFilePath()
 		const settingsModes = await this.loadModesFromFile(settingsPath)
 
-		// Get modes from .echomodes if it exists.
-		const echomodesPath = await this.getWorkspaceEchomodes()
-		const echomodesModes = echomodesPath ? await this.loadModesFromFile(echomodesPath) : []
+		// Get modes from the project custom modes file if it exists.
+		const projectModesPath = await this.getWorkspaceEchomodes()
+		const projectFileModes = projectModesPath ? await this.loadModesFromFile(projectModesPath) : []
 
 		// Create maps to store modes by source.
 		const projectModes = new Map<string, ModeConfig>()
 		const globalModes = new Map<string, ModeConfig>()
 
 		// Add project modes (they take precedence).
-		for (const mode of echomodesModes) {
+		for (const mode of projectFileModes) {
 			projectModes.set(mode.slug, { ...mode, source: "project" as const })
 		}
 
@@ -387,7 +392,7 @@ export class CustomModesManager {
 
 		// Combine modes in the correct order: project modes first, then global modes.
 		const mergedModes = [
-			...echomodesModes.map((mode) => ({ ...mode, source: "project" as const })),
+			...projectFileModes.map((mode) => ({ ...mode, source: "project" as const })),
 			...settingsModes
 				.filter((mode) => !projectModes.has(mode.slug))
 				.map((mode) => ({ ...mode, source: "global" as const })),
@@ -427,10 +432,10 @@ export class CustomModesManager {
 				}
 
 				const workspaceRoot = getWorkspacePath()
-				targetPath = path.join(workspaceRoot, ECHOMODES_FILENAME)
+				targetPath = path.join(workspaceRoot, PROJECT_MODES_RELATIVE_PATH)
 				const exists = await fileExistsAtPath(targetPath)
 
-				logger.info(`${exists ? "Updating" : "Creating"} project mode in ${ECHOMODES_FILENAME}`, {
+				logger.info(`${exists ? "Updating" : "Creating"} project mode in ${PROJECT_MODES_RELATIVE_PATH}`, {
 					slug,
 					workspace: workspaceRoot,
 				})
@@ -495,11 +500,11 @@ export class CustomModesManager {
 
 	private async refreshMergedState(): Promise<void> {
 		const settingsPath = await this.getCustomModesFilePath()
-		const echomodesPath = await this.getWorkspaceEchomodes()
+		const projectModesPath = await this.getWorkspaceEchomodes()
 
 		const settingsModes = await this.loadModesFromFile(settingsPath)
-		const echomodesModes = echomodesPath ? await this.loadModesFromFile(echomodesPath) : []
-		const mergedModes = await this.mergeCustomModes(echomodesModes, settingsModes)
+		const projectFileModes = projectModesPath ? await this.loadModesFromFile(projectModesPath) : []
+		const mergedModes = await this.mergeCustomModes(projectFileModes, settingsModes)
 
 		await this.context.globalState.update("customModes", mergedModes)
 
@@ -511,13 +516,13 @@ export class CustomModesManager {
 	public async deleteCustomMode(slug: string, fromMarketplace = false): Promise<void> {
 		try {
 			const settingsPath = await this.getCustomModesFilePath()
-			const echomodesPath = await this.getWorkspaceEchomodes()
+			const projectModesPath = await this.getWorkspaceEchomodes()
 
 			const settingsModes = await this.loadModesFromFile(settingsPath)
-			const echomodesModes = echomodesPath ? await this.loadModesFromFile(echomodesPath) : []
+			const projectFileModes = projectModesPath ? await this.loadModesFromFile(projectModesPath) : []
 
 			// Find the mode in either file
-			const projectMode = echomodesModes.find((m) => m.slug === slug)
+			const projectMode = projectFileModes.find((m) => m.slug === slug)
 			const globalMode = settingsModes.find((m) => m.slug === slug)
 
 			if (!projectMode && !globalMode) {
@@ -529,8 +534,8 @@ export class CustomModesManager {
 
 			await this.queueWrite(async () => {
 				// Delete from project first if it exists there
-				if (projectMode && echomodesPath) {
-					await this.updateModesInFile(echomodesPath, (modes) => modes.filter((m) => m.slug !== slug))
+				if (projectMode && projectModesPath) {
+					await this.updateModesInFile(projectModesPath, (modes) => modes.filter((m) => m.slug !== slug))
 				}
 
 				// Delete from global settings if it exists there
@@ -553,11 +558,11 @@ export class CustomModesManager {
 		}
 	}
 
-	/**
-	 * Deletes the rules folder for a specific mode
-	 * @param slug - The mode slug
-	 * @param mode - The mode configuration to determine the scope
-	 */
+	
+	 // Deletes the rules folder for a specific mode
+	 // @param slug - The mode slug
+	 // @param mode - The mode configuration to determine the scope
+	
 	private async deleteRulesFolder(slug: string, mode: ModeConfig, fromMarketplace = false): Promise<void> {
 		try {
 			// Determine the scope based on source (project or global)
@@ -568,14 +573,14 @@ export class CustomModesManager {
 			if (scope === "project") {
 				const workspacePath = getWorkspacePath()
 				if (workspacePath) {
-					rulesFolderPath = path.join(workspacePath, ".roo", `rules-${slug}`)
+					rulesFolderPath = path.join(workspacePath, ".echo", `rules-${slug}`)
 				} else {
 					return // No workspace, can't delete project rules
 				}
 			} else {
-				// Global scope - use OS home directory
-				const homeDir = os.homedir()
-				rulesFolderPath = path.join(homeDir, ".roo", `rules-${slug}`)
+				// Global scope - use the global Echo directory
+				const baseDir = getGlobalEchoDirectory()
+				rulesFolderPath = path.join(baseDir, `rules-${slug}`)
 			}
 
 			// Check if the rules folder exists and delete it
@@ -614,42 +619,44 @@ export class CustomModesManager {
 		}
 	}
 
-	/**
-	 * Checks if a mode has associated rules files in the .roo/rules-{slug}/ directory
-	 * @param slug - The mode identifier to check
-	 * @returns True if the mode has rules files with content, false otherwise
-	 */
+	
+	 // Checks if a mode has associated rules files in the .echo/rules-{slug}/ directory
+	 // @param slug - The mode identifier to check
+	 // @returns True if the mode has rules files with content, false otherwise
+	 
 	public async checkRulesDirectoryHasContent(slug: string): Promise<boolean> {
 		try {
 			// First, find the mode to determine its source
 			const allModes = await this.getCustomModes()
-			const mode = allModes.find((m) => m.slug === slug)
+			let mode = allModes.find((m) => m.slug === slug)
 
 			if (!mode) {
-				// If not in custom modes, check if it's in .echomodes (project-specific)
+				// If not in current merged modes, check if it's defined in the project custom modes file
 				const workspacePath = getWorkspacePath()
 				if (!workspacePath) {
 					return false
 				}
 
-				const echomodesPath = path.join(workspacePath, ECHOMODES_FILENAME)
+				const projectModesPath = path.join(workspacePath, PROJECT_MODES_RELATIVE_PATH)
 				try {
-					const echomodesExists = await fileExistsAtPath(echomodesPath)
-					if (echomodesExists) {
-						const echomodesContent = await fs.readFile(echomodesPath, "utf-8")
-						const echomodesData = yaml.parse(echomodesContent)
-						const echomodesModes = echomodesData?.customModes || []
+					const projectFileExists = await fileExistsAtPath(projectModesPath)
+					if (projectFileExists) {
+						const projectFileContent = await fs.readFile(projectModesPath, "utf-8")
+						const projectFileData = yaml.parse(projectFileContent)
+						const projectFileModes = projectFileData?.customModes || []
 
-						// Check if this specific mode exists in .echomodes
-						const modeInRoomodes = echomodesModes.find((m: any) => m.slug === slug)
-						if (!modeInRoomodes) {
+						// Check if this specific mode exists in the project custom modes file
+						const modeInProjectFile = projectFileModes.find((m: any) => m.slug === slug)
+						if (!modeInProjectFile) {
 							return false // Mode not found anywhere
 						}
+
+						mode = modeInProjectFile
 					} else {
-						return false // No .echomodes file and not in custom modes
+						return false // No project custom modes file and not in custom modes
 					}
 				} catch (error) {
-					return false // Cannot read .echomodes and not in custom modes
+					return false // Cannot read project custom modes file and not in custom modes
 				}
 			}
 
@@ -658,16 +665,16 @@ export class CustomModesManager {
 			const isGlobalMode = mode?.source === "global"
 
 			if (isGlobalMode) {
-				// For global modes, check in global .roo directory
-				const globalRooDir = getGlobalEchoDirectory()
-				modeRulesDir = path.join(globalRooDir, `rules-${slug}`)
+				// For global modes, check in global .echo directory
+				const globalEchoDir = getGlobalEchoDirectory()
+				modeRulesDir = path.join(globalEchoDir, `rules-${slug}`)
 			} else {
-				// For project modes, check in workspace .roo directory
+				// For project modes, check in workspace .echo directory
 				const workspacePath = getWorkspacePath()
 				if (!workspacePath) {
 					return false
 				}
-				modeRulesDir = path.join(workspacePath, ".roo", `rules-${slug}`)
+				modeRulesDir = path.join(workspacePath, ".echo", `rules-${slug}`)
 			}
 
 			try {
@@ -707,12 +714,12 @@ export class CustomModesManager {
 		}
 	}
 
-	/**
-	 * Exports a mode configuration with its associated rules files into a shareable YAML format
-	 * @param slug - The mode identifier to export
-	 * @param customPrompts - Optional custom prompts to merge into the export
-	 * @returns Success status with YAML content or error message
-	 */
+	
+	 // Exports a mode configuration with its associated rules files into a shareable YAML format
+	 // @param slug - The mode identifier to export
+	 // @param customPrompts - Optional custom prompts to merge into the export
+	 // @returns Success status with YAML content or error message
+	 
 	public async exportModeWithRules(slug: string, customPrompts?: PromptComponent): Promise<ExportResult> {
 		try {
 			// Import modes from shared to check built-in modes
@@ -727,16 +734,16 @@ export class CustomModesManager {
 				// Only check workspace-based modes if workspace is available
 				const workspacePath = getWorkspacePath()
 				if (workspacePath) {
-					const echomodesPath = path.join(workspacePath, ECHOMODES_FILENAME)
+					const projectModesPath = path.join(workspacePath, PROJECT_MODES_RELATIVE_PATH)
 					try {
-						const echomodesExists = await fileExistsAtPath(echomodesPath)
-						if (echomodesExists) {
-							const echomodesContent = await fs.readFile(echomodesPath, "utf-8")
-							const echomodesData = yaml.parse(echomodesContent)
-							const echomodesModes = echomodesData?.customModes || []
+						const projectFileExists = await fileExistsAtPath(projectModesPath)
+						if (projectFileExists) {
+							const projectFileContent = await fs.readFile(projectModesPath, "utf-8")
+							const projectFileData = yaml.parse(projectFileContent)
+							const projectFileModes = projectFileData?.customModes || []
 
-							// Find the mode in .echomodes
-							mode = echomodesModes.find((m: any) => m.slug === slug)
+							// Find the mode in the project custom modes file
+							mode = projectFileModes.find((m: any) => m.slug === slug)
 						}
 					} catch (error) {
 						// Continue to check built-in modes
@@ -759,7 +766,7 @@ export class CustomModesManager {
 			const isGlobalMode = mode.source === "global"
 			let baseDir: string
 			if (isGlobalMode) {
-				// For global modes, use the global .roo directory
+				// For global modes, use the global .echo directory
 				baseDir = getGlobalEchoDirectory()
 			} else {
 				// For project modes, use the workspace directory
@@ -770,10 +777,10 @@ export class CustomModesManager {
 				baseDir = workspacePath
 			}
 
-			// Check for .roo/rules-{slug}/ directory (or rules-{slug}/ for global)
+			// Check for .echo/rules-{slug}/ directory
 			const modeRulesDir = isGlobalMode
 				? path.join(baseDir, `rules-${slug}`)
-				: path.join(baseDir, ".roo", `rules-${slug}`)
+				: path.join(baseDir, ".echo", `rules-${slug}`)
 
 			let rulesFiles: RuleFile[] = []
 			try {
@@ -805,7 +812,7 @@ export class CustomModesManager {
 			// Create an export mode with rules files preserved
 			const exportMode: ExportedModeConfig = {
 				...mode,
-				// Remove source property for export
+				// Remove source property for export (always export as project mode)
 				source: "project" as const,
 			}
 
@@ -837,12 +844,12 @@ export class CustomModesManager {
 		}
 	}
 
-	/**
-	 * Helper method to import rules files for a mode
-	 * @param importMode - The mode being imported
-	 * @param rulesFiles - The rules files to import
-	 * @param source - The import source ("global" or "project")
-	 */
+	
+	 // Helper method to import rules files for a mode
+	 // @param importMode - The mode being imported
+	 // @param rulesFiles - The rules files to import
+	 // @param source - The import source ("global" or "project")
+	 
 	private async importRulesFiles(
 		importMode: ExportedModeConfig,
 		rulesFiles: RuleFile[],
@@ -857,7 +864,7 @@ export class CustomModesManager {
 			rulesFolderPath = path.join(baseDir, `rules-${importMode.slug}`)
 		} else {
 			const workspacePath = getWorkspacePath()
-			baseDir = path.join(workspacePath, ".roo")
+			baseDir = path.join(workspacePath, ".echo")
 			rulesFolderPath = path.join(baseDir, `rules-${importMode.slug}`)
 		}
 
@@ -918,12 +925,12 @@ export class CustomModesManager {
 		}
 	}
 
-	/**
-	 * Imports modes from YAML content, including their associated rules files
-	 * @param yamlContent - The YAML content containing mode configurations
-	 * @param source - Target level for import: "global" (all projects) or "project" (current workspace only)
-	 * @returns Success status with optional error message
-	 */
+	
+	 // Imports modes from YAML content, including their associated rules files
+	 // @param yamlContent - The YAML content containing mode configurations
+	 // @param source - Target level for import: "global" (all projects) or "project" (current workspace only)
+	 // @returns Success status with optional error message
+	 
 	public async importModeWithRules(
 		yamlContent: string,
 		source: "global" | "project" = "project",
@@ -967,7 +974,9 @@ export class CustomModesManager {
 					})
 					return {
 						success: false,
-						error: `Invalid mode configuration for ${modeConfig.slug}: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
+						error: `Invalid mode configuration for ${modeConfig.slug}: ${validationResult.error.errors
+							.map((e) => e.message)
+							.join(", ")}`,
 					}
 				}
 
@@ -1013,3 +1022,973 @@ export class CustomModesManager {
 		this.disposables = []
 	}
 }
+
+
+*/
+
+//-------------------------------------------------------------------//
+
+
+import * as vscode from "vscode"
+import * as path from "path"
+import * as fs from "fs/promises"
+
+import * as yaml from "yaml"
+import stripBom from "strip-bom"
+
+import {
+	type ModeConfig,
+	type PromptComponent,
+	customModesSettingsSchema,
+	modeConfigSchema,
+} from "@echo-ai/types"
+
+import { fileExistsAtPath } from "../../utils/fs"
+import { getWorkspacePath } from "../../utils/path"
+import { getGlobalEchoDirectory } from "../../services/echo-config"
+import { logger } from "../../utils/logging"
+import { GlobalFileNames } from "../../shared/globalFileNames"
+import { ensureSettingsDirectoryExists } from "../../utils/globalContext"
+import { t } from "../../i18n"
+
+// Yeni proje dosya yolu: .echo/modes/custom_modes.yaml
+const PROJECT_MODES_RELATIVE_PATH = path.join(".echo", "modes", "custom_modes.yaml")
+
+// ----------------------
+// Türler
+// ----------------------
+interface RuleFile {
+	relativePath: string
+	content: string
+}
+
+interface ExportedModeConfig extends ModeConfig {
+	rulesFiles?: RuleFile[]
+}
+
+interface ImportData {
+	customModes: ExportedModeConfig[]
+}
+
+interface ExportResult {
+	success: boolean
+	yaml?: string
+	error?: string
+}
+
+interface ImportResult {
+	success: boolean
+	slug?: string
+	error?: string
+}
+
+// ----------------------
+// CustomModesManager
+// ----------------------
+export class CustomModesManager {
+	private static readonly cacheTTL = 10_000
+
+	private disposables: vscode.Disposable[] = []
+	private isWriting = false
+	private writeQueue: Array<() => Promise<void>> = []
+	private cachedModes: ModeConfig[] | null = null
+	private cachedAt = 0
+
+	constructor(
+		private readonly context: vscode.ExtensionContext,
+		private readonly onUpdate: () => Promise<void>,
+	) {
+		this.watchCustomModesFiles().catch((error) => {
+			console.error("[CustomModesManager] Failed to setup file watchers:", error)
+		})
+	}
+
+	// ----------------------
+	// Yazma Kuyruğu
+	// ----------------------
+	private async queueWrite(operation: () => Promise<void>): Promise<void> {
+		this.writeQueue.push(operation)
+
+		if (!this.isWriting) {
+			await this.processWriteQueue()
+		}
+	}
+
+	private async processWriteQueue(): Promise<void> {
+		if (this.isWriting || this.writeQueue.length === 0) {
+			return
+		}
+
+		this.isWriting = true
+
+		try {
+			while (this.writeQueue.length > 0) {
+				const operation = this.writeQueue.shift()
+				if (operation) {
+					await operation()
+				}
+			}
+		} finally {
+			this.isWriting = false
+		}
+	}
+
+	// ----------------------
+	// Yol Yardımcıları
+	// ----------------------
+	private async getGlobalModesFilePath(): Promise<string> {
+		const settingsDir = await ensureSettingsDirectoryExists(this.context)
+		const filePath = path.join(settingsDir, GlobalFileNames.customModes)
+		const fileExists = await fileExistsAtPath(filePath)
+
+		if (!fileExists) {
+			await this.queueWrite(() =>
+				fs.writeFile(filePath, yaml.stringify({ customModes: [] }, { lineWidth: 0 })),
+			)
+		}
+
+		return filePath
+	}
+
+	private async getProjectModesFilePath(): Promise<string | undefined> {
+		const workspaceFolders = vscode.workspace.workspaceFolders
+		if (!workspaceFolders || workspaceFolders.length === 0) {
+			return undefined
+		}
+
+		const workspaceRoot = getWorkspacePath()
+		const projectFilePath = path.join(workspaceRoot, PROJECT_MODES_RELATIVE_PATH)
+		const exists = await fileExistsAtPath(projectFilePath)
+
+		return exists ? projectFilePath : undefined
+	}
+
+	//
+	 // Dışarıdan global dosya yoluna ihtiyaç duyan eski API'yi korumak için:
+	 //
+	public async getCustomModesFilePath(): Promise<string> {
+		return this.getGlobalModesFilePath()
+	}
+
+	// ----------------------
+	// Problemli Karakter Temizliği
+	// ----------------------
+	
+	 // YAML içinde sorun çıkaran karakterler:
+	 // - \u00A0: Non-breaking space
+	 // - \u200B-\u200D: Zero-width spaces/joiners
+	 // - \u2010-\u2015, \u2212: Farklı tire karakterleri
+	 // - \u2018-\u2019: Smart tek tırnak
+	 // - \u201C-\u201D: Smart çift tırnak
+	
+	private static readonly PROBLEMATIC_CHARS_REGEX =
+		// eslint-disable-next-line no-misleading-character-class
+		/[\u00A0\u200B\u200C\u200D\u2010\u2011\u2012\u2013\u2014\u2015\u2212\u2018\u2019\u201C\u201D]/g
+
+	private cleanInvisibleCharacters(content: string): string {
+		return content.replace(CustomModesManager.PROBLEMATIC_CHARS_REGEX, (match) => {
+			switch (match) {
+				case "\u00A0":
+					return " "
+				case "\u200B":
+				case "\u200C":
+				case "\u200D":
+					return ""
+				case "\u2018":
+				case "\u2019":
+					return "'"
+				case "\u201C":
+				case "\u201D":
+					return '"'
+				default:
+					return "-"
+			}
+		})
+	}
+
+	// ----------------------
+	// YAML Parse Güvenli
+	// ----------------------
+	private parseYamlSafely(content: string, filePath: string): any {
+		let cleanedContent = stripBom(content)
+		cleanedContent = this.cleanInvisibleCharacters(cleanedContent)
+
+		try {
+			const parsed = yaml.parse(cleanedContent)
+			return parsed ?? {}
+		} catch (yamlError) {
+			// Proje modes dosyası için JSON fallback
+			if (filePath.endsWith(PROJECT_MODES_RELATIVE_PATH)) {
+				try {
+					return JSON.parse(content)
+				} catch {
+					const errorMsg = yamlError instanceof Error ? yamlError.message : String(yamlError)
+					console.error(`[CustomModesManager] Failed to parse YAML from ${filePath}:`, errorMsg)
+
+					const lineMatch = errorMsg.match(/at line (\d+)/)
+					const line = lineMatch ? lineMatch[1] : "unknown"
+					vscode.window.showErrorMessage(t("common:customModes.errors.yamlParseError", { line }))
+
+					return {}
+				}
+			}
+
+			const errorMsg = yamlError instanceof Error ? yamlError.message : String(yamlError)
+			console.error(`[CustomModesManager] Failed to parse YAML from ${filePath}:`, errorMsg)
+			return {}
+		}
+	}
+
+	// ----------------------
+	// Dosyadan Mode Yükleme
+	// ----------------------
+	private async loadModesFromFile(
+		filePath: string,
+		sourceHint?: "project" | "global",
+	): Promise<ModeConfig[]> {
+		try {
+			const content = await fs.readFile(filePath, "utf-8")
+			const raw = this.parseYamlSafely(content, filePath)
+
+			if (!raw || typeof raw !== "object" || !raw.customModes) {
+				return []
+			}
+
+			const result = customModesSettingsSchema.safeParse(raw)
+			if (!result.success) {
+				console.error(`[CustomModesManager] Schema validation failed for ${filePath}:`, result.error)
+
+				if (filePath.endsWith(PROJECT_MODES_RELATIVE_PATH)) {
+					const issues = result.error.issues
+						.map((issue) => `• ${issue.path.join(".")}: ${issue.message}`)
+						.join("\n")
+
+					vscode.window.showErrorMessage(
+						t("common:customModes.errors.schemaValidationError", { issues }),
+					)
+				}
+
+				return []
+			}
+
+			let source: "project" | "global"
+			if (sourceHint) {
+				source = sourceHint
+			} else if (filePath.endsWith(PROJECT_MODES_RELATIVE_PATH)) {
+				source = "project"
+			} else {
+				source = "global"
+			}
+
+			return result.data.customModes.map((mode) => ({ ...mode, source }))
+		} catch (error) {
+			const errorMsg = `Failed to load modes from ${filePath}: ${error instanceof Error ? error.message : String(error)
+				}`
+			console.error(`[CustomModesManager] ${errorMsg}`)
+			return []
+		}
+	}
+
+	private async readAllModesFromDisk(): Promise<{
+		projectModes: ModeConfig[]
+		globalModes: ModeConfig[]
+	}> {
+		const globalPath = await this.getGlobalModesFilePath()
+		const globalModes = await this.loadModesFromFile(globalPath, "global")
+
+		const projectPath = await this.getProjectModesFilePath()
+		const projectModes = projectPath ? await this.loadModesFromFile(projectPath, "project") : []
+
+		return { projectModes, globalModes }
+	}
+
+	private mergeCustomModes(projectModes: ModeConfig[], globalModes: ModeConfig[]): ModeConfig[] {
+		const slugs = new Set<string>()
+		const merged: ModeConfig[] = []
+
+		for (const mode of projectModes) {
+			if (!slugs.has(mode.slug)) {
+				slugs.add(mode.slug)
+				merged.push({ ...mode, source: "project" })
+			}
+		}
+
+		for (const mode of globalModes) {
+			if (!slugs.has(mode.slug)) {
+				slugs.add(mode.slug)
+				merged.push({ ...mode, source: "global" })
+			}
+		}
+
+		return merged
+	}
+
+	// ----------------------
+	// File Watcher Kurulumu
+	// ----------------------
+	private async watchCustomModesFiles(): Promise<void> {
+		if (process.env.NODE_ENV === "test") {
+			return
+		}
+
+		const globalPath = await this.getGlobalModesFilePath()
+		const globalWatcher = vscode.workspace.createFileSystemWatcher(globalPath)
+
+		const handleGlobalChange = async () => {
+			try {
+				// Dosya silinmişse yeniden oluştur
+				await this.getGlobalModesFilePath()
+				await this.refreshMergedState()
+			} catch (error) {
+				console.error("[CustomModesManager] Error handling global modes change:", error)
+			}
+		}
+
+		this.disposables.push(globalWatcher.onDidChange(handleGlobalChange))
+		this.disposables.push(globalWatcher.onDidCreate(handleGlobalChange))
+		this.disposables.push(globalWatcher.onDidDelete(handleGlobalChange))
+		this.disposables.push(globalWatcher)
+
+		// Proje dosyası
+		const workspaceFolders = vscode.workspace.workspaceFolders
+		if (workspaceFolders && workspaceFolders.length > 0) {
+			const workspaceRoot = getWorkspacePath()
+			const projectModesPath = path.join(workspaceRoot, PROJECT_MODES_RELATIVE_PATH)
+			const projectWatcher = vscode.workspace.createFileSystemWatcher(projectModesPath)
+
+			const handleProjectChange = async () => {
+				try {
+					await this.refreshMergedState()
+				} catch (error) {
+					console.error(
+						"[CustomModesManager] Error handling project custom modes file change:",
+						error,
+					)
+				}
+			}
+
+			this.disposables.push(projectWatcher.onDidChange(handleProjectChange))
+			this.disposables.push(projectWatcher.onDidCreate(handleProjectChange))
+			this.disposables.push(
+				projectWatcher.onDidDelete(async () => {
+					try {
+						await this.refreshMergedState()
+					} catch (error) {
+						console.error(
+							"[CustomModesManager] Error handling project custom modes file deletion:",
+							error,
+						)
+					}
+				}),
+			)
+			this.disposables.push(projectWatcher)
+		}
+	}
+
+	// ----------------------
+	// Okuma / Cache
+	// ----------------------
+	public async getCustomModes(): Promise<ModeConfig[]> {
+		const now = Date.now()
+		if (this.cachedModes && now - this.cachedAt < CustomModesManager.cacheTTL) {
+			return this.cachedModes
+		}
+
+		const { projectModes, globalModes } = await this.readAllModesFromDisk()
+		const mergedModes = this.mergeCustomModes(projectModes, globalModes)
+
+		await this.context.globalState.update("customModes", mergedModes)
+
+		this.cachedModes = mergedModes
+		this.cachedAt = now
+
+		return mergedModes
+	}
+
+	private clearCache(): void {
+		this.cachedModes = null
+		this.cachedAt = 0
+	}
+
+	private async refreshMergedState(): Promise<void> {
+		const { projectModes, globalModes } = await this.readAllModesFromDisk()
+		const mergedModes = this.mergeCustomModes(projectModes, globalModes)
+
+		await this.context.globalState.update("customModes", mergedModes)
+		this.clearCache()
+		await this.onUpdate()
+	}
+
+	// ----------------------
+	// Mode Güncelleme / Yazma
+	// ----------------------
+	private async updateModesInFile(
+		filePath: string,
+		operation: (modes: ModeConfig[]) => ModeConfig[],
+		source: "project" | "global",
+	): Promise<void> {
+		let content: string
+
+		try {
+			// Dosya varsa oku
+			content = await fs.readFile(filePath, "utf-8")
+		} catch {
+			// Dosya yoksa boş bir customModes yapısı ile başla
+			content = yaml.stringify({ customModes: [] }, { lineWidth: 0 })
+		}
+
+		let settings: any
+		try {
+			settings = this.parseYamlSafely(content, filePath)
+		} catch {
+			settings = { customModes: [] }
+		}
+
+		// Ayar yapısını garantiye al
+		if (!settings || typeof settings !== "object") {
+			settings = { customModes: [] }
+		}
+		if (!settings.customModes) {
+			settings.customModes = []
+		}
+
+		// Mevcut modları ModeConfig[] hâline getir (source ekleyerek)
+		const currentModes: ModeConfig[] = settings.customModes.map((m: any) => ({
+			...m,
+			source,
+		}))
+
+		// Dışarıdan gelen operation ile listeyi güncelle
+		const updatedModes = operation(currentModes)
+
+		// Dosyaya yazarken source alanını dışarı atıyoruz (yaml içinde source tutulmuyor)
+		settings.customModes = updatedModes.map((m) => {
+			const { source: _discard, ...rest } = m
+			return rest
+		})
+
+		// 🔴 ÖNEMLİ DÜZELTME: Üst klasörü oluştur
+		const dir = path.dirname(filePath)
+		await fs.mkdir(dir, { recursive: true })
+
+		// Artık güvenle yazabiliriz
+		await fs.writeFile(filePath, yaml.stringify(settings, { lineWidth: 0 }), "utf-8")
+	}
+
+
+	public async updateCustomMode(slug: string, config: ModeConfig): Promise<void> {
+		try {
+			const validationResult = modeConfigSchema.safeParse(config)
+			if (!validationResult.success) {
+				const errorMessages = validationResult.error.errors
+					.map((err) => `${err.path.join(".")}: ${err.message}`)
+					.join(", ")
+				const errorMessage = `Invalid mode configuration: ${errorMessages}`
+
+				logger.error("Mode validation failed", { slug, errors: validationResult.error.errors })
+				vscode.window.showErrorMessage(
+					t("common:customModes.errors.updateFailed", { error: errorMessage }),
+				)
+				throw new Error(errorMessage)
+			}
+
+			const isProjectMode = config.source === "project"
+			let targetPath: string
+			let source: "project" | "global"
+
+			if (isProjectMode) {
+				const workspaceFolders = vscode.workspace.workspaceFolders
+				if (!workspaceFolders || workspaceFolders.length === 0) {
+					logger.error("Failed to update project mode: No workspace folder found", { slug })
+					throw new Error(t("common:customModes.errors.noWorkspaceForProject"))
+				}
+
+				const workspaceRoot = getWorkspacePath()
+				targetPath = path.join(workspaceRoot, PROJECT_MODES_RELATIVE_PATH)
+				source = "project"
+
+				logger.info("Updating/creating project mode in .echo/modes/custom_modes.yaml", {
+					slug,
+					workspace: workspaceRoot,
+				})
+			} else {
+				targetPath = await this.getGlobalModesFilePath()
+				source = "global"
+			}
+
+			await this.queueWrite(async () => {
+				const modeWithSource: ModeConfig = {
+					...config,
+					source,
+				}
+
+				await this.updateModesInFile(
+					targetPath,
+					(modes) => {
+						const filtered = modes.filter((m) => m.slug !== slug)
+						return [...filtered, modeWithSource]
+					},
+					source,
+				)
+
+				this.clearCache()
+				await this.refreshMergedState()
+			})
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			logger.error("Failed to update custom mode", { slug, error: errorMessage })
+			vscode.window.showErrorMessage(
+				t("common:customModes.errors.updateFailed", { error: errorMessage }),
+			)
+			throw error
+		}
+	}
+
+	// ----------------------
+	// Mode Silme
+	// ----------------------
+	public async deleteCustomMode(slug: string, fromMarketplace = false): Promise<void> {
+		try {
+			const globalPath = await this.getGlobalModesFilePath()
+			const projectPath = await this.getProjectModesFilePath()
+
+			const globalModes = await this.loadModesFromFile(globalPath, "global")
+			const projectModes = projectPath ? await this.loadModesFromFile(projectPath, "project") : []
+
+			const projectMode = projectModes.find((m) => m.slug === slug)
+			const globalMode = globalModes.find((m) => m.slug === slug)
+
+			if (!projectMode && !globalMode) {
+				throw new Error(t("common:customModes.errors.modeNotFound"))
+			}
+
+			const modeToDelete = projectMode || globalMode
+
+			await this.queueWrite(async () => {
+				if (projectMode && projectPath) {
+					await this.updateModesInFile(
+						projectPath,
+						(modes) => modes.filter((m) => m.slug !== slug),
+						"project",
+					)
+				}
+
+				if (globalMode) {
+					await this.updateModesInFile(
+						globalPath,
+						(modes) => modes.filter((m) => m.slug !== slug),
+						"global",
+					)
+				}
+
+				if (modeToDelete) {
+					await this.deleteRulesFolder(slug, modeToDelete, fromMarketplace)
+				}
+
+				this.clearCache()
+				await this.refreshMergedState()
+			})
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			vscode.window.showErrorMessage(
+				t("common:customModes.errors.deleteFailed", { error: errorMessage }),
+			)
+		}
+	}
+
+	private async deleteRulesFolder(
+		slug: string,
+		mode: ModeConfig,
+		fromMarketplace = false,
+	): Promise<void> {
+		try {
+			const scope = mode.source || "global"
+
+			let rulesFolderPath: string
+			if (scope === "project") {
+				const workspacePath = getWorkspacePath()
+				if (!workspacePath) {
+					return
+				}
+				rulesFolderPath = path.join(workspacePath, ".echo", `rules-${slug}`)
+			} else {
+				const baseDir = getGlobalEchoDirectory()
+				rulesFolderPath = path.join(baseDir, `rules-${slug}`)
+			}
+
+			const rulesFolderExists = await fileExistsAtPath(rulesFolderPath)
+			if (rulesFolderExists) {
+				try {
+					await fs.rm(rulesFolderPath, { recursive: true, force: true })
+					logger.info(`Deleted rules folder for mode ${slug}: ${rulesFolderPath}`)
+				} catch (error) {
+					logger.error(`Failed to delete rules folder for mode ${slug}: ${error}`)
+					const messageKey = fromMarketplace
+						? "common:marketplace.mode.rulesCleanupFailed"
+						: "common:customModes.errors.rulesCleanupFailed"
+					vscode.window.showWarningMessage(t(messageKey, { rulesFolderPath }))
+				}
+			}
+		} catch (error) {
+			logger.error(`Error deleting rules folder for mode ${slug}`, {
+				error: error instanceof Error ? error.message : String(error),
+			})
+		}
+	}
+
+	// ----------------------
+	// Reset
+	// ----------------------
+	public async resetCustomModes(): Promise<void> {
+		try {
+			const filePath = await this.getGlobalModesFilePath()
+			await fs.writeFile(filePath, yaml.stringify({ customModes: [] }, { lineWidth: 0 }))
+			await this.context.globalState.update("customModes", [])
+			this.clearCache()
+			await this.onUpdate()
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			vscode.window.showErrorMessage(
+				t("common:customModes.errors.resetFailed", { error: errorMessage }),
+			)
+		}
+	}
+
+	// ----------------------
+	// Rules Dizini Kontrolü
+	// ----------------------
+	public async checkRulesDirectoryHasContent(slug: string): Promise<boolean> {
+		try {
+			const allModes = await this.getCustomModes()
+			let mode = allModes.find((m) => m.slug === slug)
+
+			if (!mode) {
+				const workspacePath = getWorkspacePath()
+				if (!workspacePath) {
+					return false
+				}
+
+				const projectModesPath = path.join(workspacePath, PROJECT_MODES_RELATIVE_PATH)
+				try {
+					const exists = await fileExistsAtPath(projectModesPath)
+					if (!exists) {
+						return false
+					}
+					const content = await fs.readFile(projectModesPath, "utf-8")
+					const data = yaml.parse(content)
+					const projectFileModes = data?.customModes || []
+					const modeInProject = projectFileModes.find((m: any) => m.slug === slug)
+					if (!modeInProject) {
+						return false
+					}
+					mode = modeInProject
+				} catch {
+					return false
+				}
+			}
+
+			let modeRulesDir: string
+			const isGlobalMode = mode?.source === "global"
+
+			if (isGlobalMode) {
+				const globalEchoDir = getGlobalEchoDirectory()
+				modeRulesDir = path.join(globalEchoDir, `rules-${slug}`)
+			} else {
+				const workspacePath = getWorkspacePath()
+				if (!workspacePath) {
+					return false
+				}
+				modeRulesDir = path.join(workspacePath, ".echo", `rules-${slug}`)
+			}
+
+			try {
+				const stats = await fs.stat(modeRulesDir)
+				if (!stats.isDirectory()) {
+					return false
+				}
+			} catch {
+				return false
+			}
+
+			try {
+				const entries = await fs.readdir(modeRulesDir, { withFileTypes: true })
+				for (const entry of entries) {
+					if (entry.isFile()) {
+						const filePath = path.join(modeRulesDir, entry.name)
+						const content = await fs.readFile(filePath, "utf-8")
+						if (content.trim()) {
+							return true
+						}
+					}
+				}
+				return false
+			} catch {
+				return false
+			}
+		} catch (error) {
+			logger.error("Failed to check rules directory for mode", {
+				slug,
+				error: error instanceof Error ? error.message : String(error),
+			})
+			return false
+		}
+	}
+
+	// ----------------------
+	// Export
+	// ----------------------
+	public async exportModeWithRules(slug: string, customPrompts?: PromptComponent): Promise<ExportResult> {
+		try {
+			const { modes: builtInModes } = await import("../../shared/modes")
+
+			const allModes = await this.getCustomModes()
+			let mode = allModes.find((m) => m.slug === slug)
+
+			if (!mode) {
+				const workspacePath = getWorkspacePath()
+				if (workspacePath) {
+					const projectModesPath = path.join(workspacePath, PROJECT_MODES_RELATIVE_PATH)
+					try {
+						const exists = await fileExistsAtPath(projectModesPath)
+						if (exists) {
+							const content = await fs.readFile(projectModesPath, "utf-8")
+							const data = yaml.parse(content)
+							const projectFileModes = data?.customModes || []
+							mode = projectFileModes.find((m: any) => m.slug === slug)
+						}
+					} catch {
+						// ignore
+					}
+				}
+
+				if (!mode) {
+					const builtInMode = builtInModes.find((m) => m.slug === slug)
+					if (builtInMode) {
+						mode = { ...builtInMode }
+					} else {
+						return { success: false, error: "Mode not found" }
+					}
+				}
+			}
+
+			const isGlobalMode = mode.source === "global"
+			let baseDir: string
+
+			if (isGlobalMode) {
+				baseDir = getGlobalEchoDirectory()
+			} else {
+				const workspacePath = getWorkspacePath()
+				if (!workspacePath) {
+					return { success: false, error: "No workspace found" }
+				}
+				baseDir = workspacePath
+			}
+
+			const modeRulesDir = isGlobalMode
+				? path.join(baseDir, `rules-${slug}`)
+				: path.join(baseDir, ".echo", `rules-${slug}`)
+
+			const rulesFiles: RuleFile[] = []
+
+			try {
+				const stats = await fs.stat(modeRulesDir)
+				if (stats.isDirectory()) {
+					const entries = await fs.readdir(modeRulesDir, { withFileTypes: true })
+
+					for (const entry of entries) {
+						if (entry.isFile()) {
+							const filePath = path.join(modeRulesDir, entry.name)
+							const content = await fs.readFile(filePath, "utf-8")
+							if (content.trim()) {
+								const relativePath = path.relative(modeRulesDir, filePath)
+								const normalizedRelativePath = relativePath.replace(/\\/g, "/")
+								rulesFiles.push({
+									relativePath: normalizedRelativePath,
+									content: content.trim(),
+								})
+							}
+						}
+					}
+				}
+			} catch {
+				// Rules klasörü yoksa sorun değil
+			}
+
+			const exportMode: ExportedModeConfig = {
+				...mode,
+				source: "project",
+			}
+
+			if (customPrompts) {
+				if (customPrompts.roleDefinition) exportMode.roleDefinition = customPrompts.roleDefinition
+				if (customPrompts.description) exportMode.description = customPrompts.description
+				if (customPrompts.whenToUse) exportMode.whenToUse = customPrompts.whenToUse
+				if (customPrompts.customInstructions)
+					exportMode.customInstructions = customPrompts.customInstructions
+			}
+
+			if (rulesFiles.length > 0) {
+				exportMode.rulesFiles = rulesFiles
+			}
+
+			const exportData = {
+				customModes: [exportMode],
+			}
+
+			const yamlContent = yaml.stringify(exportData)
+			return { success: true, yaml: yamlContent }
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			logger.error("Failed to export mode with rules", { slug, error: errorMessage })
+			return { success: false, error: errorMessage }
+		}
+	}
+
+	// ----------------------
+	// Import (rules dahil)
+	// ----------------------
+	private async importRulesFiles(
+		importMode: ExportedModeConfig,
+		rulesFiles: RuleFile[],
+		source: "global" | "project",
+	): Promise<void> {
+		let baseDir: string
+		let rulesFolderPath: string
+
+		if (source === "global") {
+			baseDir = getGlobalEchoDirectory()
+			rulesFolderPath = path.join(baseDir, `rules-${importMode.slug}`)
+		} else {
+			const workspacePath = getWorkspacePath()
+			baseDir = path.join(workspacePath, ".echo")
+			rulesFolderPath = path.join(baseDir, `rules-${importMode.slug}`)
+		}
+
+		try {
+			await fs.rm(rulesFolderPath, { recursive: true, force: true })
+			logger.info(`Removed existing ${source} rules folder for mode ${importMode.slug}`)
+		} catch {
+			logger.debug?.(
+				`No existing ${source} rules folder to remove for mode ${importMode.slug}`,
+			)
+		}
+
+		if (!rulesFiles || !Array.isArray(rulesFiles) || rulesFiles.length === 0) {
+			return
+		}
+
+		for (const ruleFile of rulesFiles) {
+			if (ruleFile.relativePath && ruleFile.content) {
+				const normalizedRelativePath = path.normalize(ruleFile.relativePath)
+
+				if (normalizedRelativePath.includes("..") || path.isAbsolute(normalizedRelativePath)) {
+					logger.error(`Invalid file path detected: ${ruleFile.relativePath}`)
+					continue
+				}
+
+				let cleanedRelativePath = normalizedRelativePath
+				const rulesMatch = normalizedRelativePath.match(/^rules-[^\/\\]+[\/\\]/)
+				if (rulesMatch) {
+					cleanedRelativePath = normalizedRelativePath.substring(rulesMatch[0].length)
+					logger.info(`Detected old export format, stripping ${rulesMatch[0]} from path`)
+				}
+
+				const targetPath = path.join(rulesFolderPath, cleanedRelativePath)
+				const normalizedTargetPath = path.normalize(targetPath)
+				const expectedBasePath = path.normalize(rulesFolderPath)
+
+				if (!normalizedTargetPath.startsWith(expectedBasePath)) {
+					logger.error(`Path traversal attempt detected: ${ruleFile.relativePath}`)
+					continue
+				}
+
+				const targetDir = path.dirname(targetPath)
+				await fs.mkdir(targetDir, { recursive: true })
+
+				await fs.writeFile(targetPath, ruleFile.content, "utf-8")
+			}
+		}
+	}
+
+	public async importModeWithRules(
+		yamlContent: string,
+		source: "global" | "project" = "project",
+	): Promise<ImportResult> {
+		try {
+			let importData: ImportData
+			try {
+				const parsed = yaml.parse(yamlContent)
+
+				if (!parsed?.customModes || !Array.isArray(parsed.customModes) || parsed.customModes.length === 0) {
+					return {
+						success: false,
+						error: "Invalid import format: Expected 'customModes' array in YAML",
+					}
+				}
+
+				importData = parsed as ImportData
+			} catch (parseError) {
+				return {
+					success: false,
+					error: `Invalid YAML format: ${parseError instanceof Error ? parseError.message : "Failed to parse YAML"
+						}`,
+				}
+			}
+
+			if (source === "project") {
+				const workspacePath = getWorkspacePath()
+				if (!workspacePath) {
+					return { success: false, error: "No workspace found" }
+				}
+			}
+
+			for (const importMode of importData.customModes) {
+				const { rulesFiles, ...modeConfig } = importMode
+
+				const validationResult = modeConfigSchema.safeParse(modeConfig)
+				if (!validationResult.success) {
+					logger.error(`Invalid mode configuration for ${modeConfig.slug}`, {
+						errors: validationResult.error.errors,
+					})
+					return {
+						success: false,
+						error: `Invalid mode configuration for ${modeConfig.slug
+							}: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
+					}
+				}
+
+				const existingModes = await this.getCustomModes()
+				const existingMode = existingModes.find((m) => m.slug === importMode.slug)
+				if (existingMode) {
+					logger.info(`Overwriting existing mode: ${importMode.slug}`)
+				}
+
+				await this.updateCustomMode(importMode.slug, {
+					...modeConfig,
+					source,
+				})
+
+				await this.importRulesFiles(importMode, rulesFiles || [], source)
+			}
+
+			await this.refreshMergedState()
+			return { success: true, slug: importData.customModes[0]?.slug }
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			logger.error("Failed to import mode with rules", { error: errorMessage })
+			return { success: false, error: errorMessage }
+		}
+	}
+
+	// ----------------------
+	// Dispose
+	// ----------------------
+	dispose(): void {
+		for (const disposable of this.disposables) {
+			disposable.dispose()
+		}
+		this.disposables = []
+	}
+}
+
+

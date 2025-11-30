@@ -22,25 +22,62 @@ const defaultThemes: Record<string, string> = {
 	"Visual Studio Light": "light_vs",
 }
 
+// ----------------------
+// HELPERS
+// ----------------------
 function parseThemeString(themeString: string | undefined): any {
 	themeString = themeString
 		?.split("\n")
-		.filter((line) => {
-			return !line.trim().startsWith("//")
-		})
+		.filter((line) => !line.trim().startsWith("//"))
 		.join("\n")
-	return JSON.parse(themeString ?? "{}")
+
+	try {
+		return JSON.parse(themeString ?? "{}")
+	} catch (e) {
+		console.error("Theme JSON parse failed:", e)
+		return {} // fallback boş json
+	}
 }
 
+// VSCode'dan direkt default theme çekme fallBack
+async function getVSCodeFallbackTheme() {
+	const colorTheme = vscode.workspace.getConfiguration("workbench").get<string>("colorTheme") || "Default Dark Modern"
+
+	// Editor color theme API'si
+	try {
+		const themeData = await vscode.window.activeColorTheme
+		if (themeData) {
+			return {
+				base: themeData.kind === vscode.ColorThemeKind.Light ? "vs" : "vs-dark",
+				inherit: true,
+				rules: [],
+				colors: {}
+			}
+		}
+	} catch {}
+
+	// Son çare: dark fallback
+	return {
+		base: "vs-dark",
+		inherit: true,
+		rules: [],
+		colors: {}
+	}
+}
+
+
+// ----------------------
+// MAIN FUNCTION
+// ----------------------
 export async function getTheme() {
 	let currentTheme = undefined
 	const colorTheme = vscode.workspace.getConfiguration("workbench").get<string>("colorTheme") || "Default Dark Modern"
 
 	try {
+		// 1) TEMA DOSYASINI BUL
 		for (let i = vscode.extensions.all.length - 1; i >= 0; i--) {
-			if (currentTheme) {
-				break
-			}
+			if (currentTheme) break
+
 			const extension = vscode.extensions.all[i]
 			if (extension.packageJSON?.contributes?.themes?.length > 0) {
 				for (const theme of extension.packageJSON.contributes.themes) {
@@ -53,6 +90,7 @@ export async function getTheme() {
 			}
 		}
 
+		// 2) EĞER BULUNAMADI → KENDİ DEFAULT TEMALARINA DÜŞ
 		if (currentTheme === undefined && defaultThemes[colorTheme]) {
 			const filename = `${defaultThemes[colorTheme]}.json`
 			currentTheme = await fs.readFile(
@@ -61,9 +99,16 @@ export async function getTheme() {
 			)
 		}
 
-		// Strip comments from theme
+		// 3) HÂLÂ YOKSA → VSCode’un kendi temasına göre fallback
+		if (!currentTheme) {
+			console.warn("[Theme] VSCode theme not found. Falling back to VSCode active theme.")
+			return await getVSCodeFallbackTheme()
+		}
+
+		// 4) JSON PARSE
 		let parsed = parseThemeString(currentTheme)
 
+		// Include varsa merge et
 		if (parsed.include) {
 			const includeThemeString = await fs.readFile(
 				path.join(getExtensionUri().fsPath, "integrations", "theme", "default-themes", parsed.include),
@@ -73,6 +118,18 @@ export async function getTheme() {
 			parsed = mergeJson(parsed, includeTheme)
 		}
 
+		// ❗5) convertTheme çalışmadan önce VALIDASYON EKLİYORUZ
+		if (!parsed || typeof parsed !== "object") {
+			console.error("[Theme] Parsed theme is invalid, falling back.")
+			return await getVSCodeFallbackTheme()
+		}
+
+		if (!parsed.colors && !parsed.tokenColors) {
+			console.error("[Theme] Theme missing critical fields (colors/tokenColors). Falling back.")
+			return await getVSCodeFallbackTheme()
+		}
+
+		// 6) Convert theme (orijinal mekanik)
 		const converted = convertTheme(parsed)
 
 		converted.base = (
@@ -86,8 +143,9 @@ export async function getTheme() {
 		return converted
 	} catch (e) {
 		console.log("Error loading color theme: ", e)
+		// ❗YAKALANAN TÜM HATALARDA YİNE VSCode fallback
+		return await getVSCodeFallbackTheme()
 	}
-	return undefined
 }
 
 type JsonObject = { [key: string]: any }
@@ -104,16 +162,13 @@ export function mergeJson(
 			const secondValue = second[key]
 
 			if (!(key in copyOfFirst) || mergeBehavior === "overwrite") {
-				// New value
 				copyOfFirst[key] = secondValue
 				continue
 			}
 
 			const firstValue = copyOfFirst[key]
 			if (Array.isArray(secondValue) && Array.isArray(firstValue)) {
-				// Array
 				if (mergeKeys?.[key]) {
-					// Merge keys are used to determine whether an item form the second object should override one from the first
 					const keptFromFirst: any[] = []
 					firstValue.forEach((item: any) => {
 						if (!secondValue.some((item2: any) => mergeKeys[key](item, item2))) {
@@ -125,10 +180,8 @@ export function mergeJson(
 					copyOfFirst[key] = [...firstValue, ...secondValue]
 				}
 			} else if (typeof secondValue === "object" && typeof firstValue === "object") {
-				// Object
 				copyOfFirst[key] = mergeJson(firstValue, secondValue, mergeBehavior)
 			} else {
-				// Other (boolean, number, string)
 				copyOfFirst[key] = secondValue
 			}
 		}

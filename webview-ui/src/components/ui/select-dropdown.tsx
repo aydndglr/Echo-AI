@@ -200,7 +200,7 @@ export const SelectDropdown = React.memo(
 							: "opacity-90 hover:opacity-100 hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)] cursor-pointer",
 						triggerClassName,
 					)}>
-					<CaretUpIcon className="pointer-events-none opacity-80 flex-shrink-0 size-3" />
+					<CaretUpIcon className="pointer-events-none opacity-80 shrink-0 size-3" />
 					<span className="truncate">{displayText}</span>
 				</PopoverTrigger>
 			)
