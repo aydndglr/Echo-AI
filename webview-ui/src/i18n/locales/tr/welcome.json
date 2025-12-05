@@ -1,0 +1,35 @@
+{
+	"greeting": "Echo AI'a Hoş Geldin!",
+	"introduction": "Yerleşik ve genişletilebilir Modlar yelpazesiyle Echo AI, daha önce hiç olmadığı gibi planlama, mimari tasarım, kodlama, hata ayıklama ve üretkenliğini artırmanı sağlar.",
+	"notice": "Başlamak için bu eklentinin bir API sağlayıcısına ihtiyacı var.",
+	"start": "Hadi başlayalım!",
+	"routers": {
+		"requesty": {
+			"description": "Optimize edilmiş LLM yönlendiricin",
+			"incentive": "$1 ücretsiz kredi"
+		},
+		"openrouter": {
+			"description": "LLM'ler için birleşik bir arayüz"
+		},
+		"echo": {
+			"description": "Başlamak için en iyi ücretsiz modeller",
+			"incentive": "Echo'yu ücretsiz dene"
+		}
+	},
+	"chooseProvider": "Başlamak için bir LLM sağlayıcısına ihtiyacın var:",
+	"providerSignup": {
+		"devlogCloudProvider": "Echo AI Cloud Sağlayıcısı",
+		"devlogCloudDescription": "Echo'yu kullanmanın en basit yolu. Düşük maliyetle seçilmiş ücretsiz ve ücretli modellerin karışımı",
+		"learnMore": "daha fazla bilgi",
+		"useAnotherProvider": "Başka bir sağlayıcı kullan",
+		"useAnotherProviderDescription": "Bir API anahtarı gir ve başla.",
+		"getStarted": "Başla"
+	},
+	"startRouter": "Bir LLM yönlendiricisi kullanmanı öneririz:",
+	"startCustom": "Veya kendi API anahtarını kullanabilirsin:",
+	"telemetry": {
+		"helpImprove": "Echo AI'u Geliştirmeye Yardım Et",
+		"helpImproveMessage": "Echo AI, hataları düzeltmemize ve uzantıyı geliştirmemize yardımcı olmak için hata ve kullanım verilerini toplar. Bu telemetri kod, prompt veya kişisel bilgi toplamaz. Bunu <settingsLink>ayarlar</settingsLink>dan kapatabilirsin."
+	},
+	"importSettings": "Ayarları İçe Aktar"
+}

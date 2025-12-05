@@ -1,0 +1,275 @@
+<complete_examples>
+  <example name="fix_failing_tests_and_address_comments">
+    <scenario>
+      A pull request has a failing CI check and a review comment asking for a change.
+    </scenario>
+    
+    <user_request>
+      Fix PR #<pr_number> in &lt;your_org&gt;/&lt;your_repo&gt;.
+    </user_request>
+
+    <workflow>
+      <step number="1">
+        <description>Get PR details and review comments.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr view <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --json number,title,author,state,body,url,headRefName,baseRefName,files,additions,deletions,changedFiles,comments,reviews,mergeable,mergeStateStatus</command>
+          </execute_command>
+        </tool_use>
+        <expected_outcome>Get the branch name, list of review comments, and check for mergeability.</expected_outcome>
+      </step>
+
+      <step number="2">
+        <description>Check CI status.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr checks <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt;</command>
+          </execute_command>
+        </tool_use>
+        <analysis>Identify which check is failing.</analysis>
+      </step>
+
+      <step number="3">
+        <description>Get logs for the failing check.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh run list --pr <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt;</command>
+          </execute_command>
+        </tool_use>
+        <analysis>Get the run ID of the failing workflow.</analysis>
+      </step>
+
+      <step number="3a">
+        <description>View the failed logs.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh run view &lt;run_id&gt; --repo &lt;your_org&gt;/&lt;your_repo&gt; --log-failed</command>
+          </execute_command>
+        </tool_use>
+        <analysis>Find the specific error message causing the test to fail.</analysis>
+      </step>
+      
+      <step number="4">
+        <description>Check out the pull request branch.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr checkout <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --force</command>
+          </execute_command>
+        </tool_use>
+        <analysis>The PR branch is now ready for local edits.</analysis>
+      </step>
+
+      <step number="5">
+        <description>Summarize findings and ask the user for the next action.</description>
+        <tool_use>
+          <ask_followup_question>
+            <question>I've checked out the branch. I found a failing test related to 'XYZ' and a review comment asking to rename a variable. How should we proceed?</question>
+            <follow_up>
+              <suggest>First, apply the change requested in the review comment.</suggest>
+              <suggest>Let's start by fixing the failing test.</suggest>
+              <suggest>Show me the code for the failing test and the file with the review comment.</suggest>
+            </follow_up>
+          </ask_followup_question>
+        </tool_use>
+      </step>
+
+      <step number="6">
+        <description>After pushing the changes, monitor PR checks in real-time.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr checks <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --watch</command>
+          </execute_command>
+        </tool_use>
+        <analysis>Monitor checks continuously until all complete. The --watch flag provides real-time updates.</analysis>
+      </step>
+    </workflow>
+
+    <key_takeaways>
+      <takeaway>Always gather all PR details first before proposing a solution.</takeaway>
+      <takeaway>Use GitHub CLI to understand PR status and failing tests.</takeaway>
+      <takeaway>The --watch flag enables real-time CI status updates.</takeaway>
+    </key_takeaways>
+  </example>
+
+
+  <!-- SECOND EXAMPLE -->
+  <example name="fix_pr_with_translation_requirements">
+    <scenario>
+      A pull request has review comments requesting UI text changes that require translation updates across all supported languages.
+    </scenario>
+    
+    <user_request>
+      Fix PR #<pr_number> in &lt;your_org&gt;/&lt;your_repo&gt; - translation updates required.
+    </user_request>
+
+    <workflow>
+      <step number="1">
+        <description>Get PR details and analyze changes.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr view <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --json number,title,author,state,body,url,headRefName,baseRefName,files,additions,deletions,changedFiles,comments,reviews</command>
+          </execute_command>
+        </tool_use>
+        <expected_outcome>Identify the files changed and review feedback requiring UI text modifications.</expected_outcome>
+      </step>
+
+      <step number="2">
+        <description>Check out PR and apply requested changes.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr checkout <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --force</command>
+          </execute_command>
+        </tool_use>
+        <analysis>Make the requested UI text updates.</analysis>
+      </step>
+
+      <step number="3">
+        <description>Delegate translation updates.</description>
+        <tool_use>
+          <new_task>
+            <mode>translate</mode>
+            <message>Translation updates needed for PR #<pr_number>. Please update all supported languages with the new text changes.</message>
+          </new_task>
+        </tool_use>
+        <expected_outcome>All language files updated consistently.</expected_outcome>
+      </step>
+
+      <step number="4">
+        <description>Review and commit changes including translations.</description>
+        <tool_use>
+          <execute_command>
+            <command>git status --porcelain</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="4a">
+        <description>Stage and commit.</description>
+        <tool_use>
+          <execute_command>
+            <command>git add -u && git commit -m "fix: update UI text + translations"</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="5">
+        <description>Check if PR is from a fork.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr view <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --json isCrossRepository,headRepositoryOwner,headRefName</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="6">
+        <description>Push to correct remote.</description>
+        <tool_use>
+          <execute_command>
+            <command>git push --force-with-lease origin &lt;branch_name&gt;</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="7">
+        <description>Monitor CI status.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr checks <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --watch</command>
+          </execute_command>
+        </tool_use>
+      </step>
+    </workflow>
+
+    <key_takeaways>
+      <takeaway>UI changes often require translation updates.</takeaway>
+      <takeaway>Delegate translation work to translate mode for consistency.</takeaway>
+      <takeaway>Verify translation completeness before approving PR fixes.</takeaway>
+      <takeaway>Always check fork status before pushing changes.</takeaway>
+    </key_takeaways>
+  </example>
+
+
+  <!-- THIRD EXAMPLE -->
+  <example name="fix_pr_with_merge_conflicts">
+    <scenario>
+      A pull request has merge conflicts that must be resolved first.
+    </scenario>
+    
+    <user_request>
+      Fix PR #<pr_number> in &lt;your_org&gt;/&lt;your_repo&gt; - merge conflicts and failing tests.
+    </user_request>
+
+    <workflow>
+      <step number="1">
+        <description>Check PR mergeability.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr view <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --json number,title,author,state,body,url,headRefName,baseRefName,mergeable,mergeStateStatus</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="2">
+        <description>Delegate merge conflict resolution.</description>
+        <tool_use>
+          <new_task>
+            <mode>merge-resolver</mode>
+            <message>Resolve merge conflicts for PR #<pr_number>.</message>
+          </new_task>
+        </tool_use>
+      </step>
+
+      <step number="3">
+        <description>Re-check merge status.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr view <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --json mergeable,mergeStateStatus</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="4">
+        <description>Check CI status after conflict resolution.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr checks <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt;</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="5">
+        <description>Fix tests if needed.</description>
+        <tool_use>
+          <execute_command>
+            <command>git add -u && git commit -m "fix: resolve failing tests after conflict resolution"</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="6">
+        <description>Push updates.</description>
+        <tool_use>
+          <execute_command>
+            <command>git push --force-with-lease origin &lt;branch_name&gt;</command>
+          </execute_command>
+        </tool_use>
+      </step>
+
+      <step number="7">
+        <description>Monitor CI checks.</description>
+        <tool_use>
+          <execute_command>
+            <command>gh pr checks <pr_number> --repo &lt;your_org&gt;/&lt;your_repo&gt; --watch</command>
+          </execute_command>
+        </tool_use>
+      </step>
+    </workflow>
+
+    <key_takeaways>
+      <takeaway>Merge conflicts must be resolved before addressing tests.</takeaway>
+      <takeaway>Use merge-resolver mode for safe conflict resolution.</takeaway>
+      <takeaway>Re-check CI after merge resolution and test fixes.</takeaway>
+      <takeaway>Keep conflict commits separate from test fix commits.</takeaway>
+    </key_takeaways>
+  </example>
+</complete_examples>
