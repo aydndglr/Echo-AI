@@ -52,7 +52,7 @@ export class DevLogProvider implements ApiHandler {
     metadata?: ApiHandlerCreateMessageMetadata 
   ): ApiStream {
     
-    const PRODUCTION_URL = "http://localhost:4000"
+    const PRODUCTION_URL = "http://84.46.243.30:4000"
     let baseUrl = (this.options as any).devlogBaseUrl || (this.options as any).baseUrl || PRODUCTION_URL
     if (baseUrl.endsWith("/")) {
       baseUrl = baseUrl.slice(0, -1)
@@ -158,7 +158,7 @@ export class DevLogProvider implements ApiHandler {
   }
 
   async getModels(): Promise<ModelInfo[]> {
-    const PRODUCTION_URL = "http://localhost:4000"
+    const PRODUCTION_URL = "http://84.46.243.30:4000"
     let baseUrl = (this.options as any).devlogBaseUrl || (this.options as any).baseUrl || PRODUCTION_URL
     if (baseUrl.endsWith("/")) {
       baseUrl = baseUrl.slice(0, -1)
